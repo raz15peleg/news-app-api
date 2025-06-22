@@ -1,0 +1,113 @@
+INFO:     Will watch for changes in these directories: ['/Users/razpeleg/repos/news-app-api/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [77214] using StatReload
+INFO:     Started server process [77217]
+INFO:     Waiting for application startup.
+2025-06-22 22:52:53,807 - app.main - INFO - Starting News App API...
+2025-06-22 22:52:53,808 - app.main - INFO - Database tables created
+2025-06-22 22:52:53,808 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:52:53,808 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:52:53,808 - apscheduler.scheduler - INFO - Added job "Fetch News Hourly" to job store "default"
+2025-06-22 22:52:53,808 - apscheduler.scheduler - INFO - Added job "Cleanup Old Articles" to job store "default"
+2025-06-22 22:52:53,808 - apscheduler.scheduler - INFO - Scheduler started
+2025-06-22 22:52:53,808 - app.services.cron_service - INFO - Scheduler started successfully
+2025-06-22 22:52:53,808 - app.main - INFO - Background scheduler started
+INFO:     Application startup complete.
+INFO:     127.0.0.1:61591 - "GET /api/v1/articles/newest?count=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61593 - "GET /api/v1/articles/newest?count=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61597 - "GET /api/v1/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61609 - "GET /api/v1/articles/newest?count=5 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61631 - "GET /api/v1/articles/random?count=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61633 - "GET /api/v1/articles/newest?count=5 HTTP/1.1" 200 OK
+WARNING:  StatReload detected changes in 'app/services/news_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-06-22 22:53:48,696 - app.main - INFO - Stopping News App API...
+2025-06-22 22:53:48,696 - app.services.cron_service - INFO - Scheduler stopped successfully
+2025-06-22 22:53:48,696 - app.main - INFO - Background scheduler stopped
+2025-06-22 22:53:48,696 - apscheduler.scheduler - INFO - Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [77217]
+INFO:     Started server process [78124]
+INFO:     Waiting for application startup.
+2025-06-22 22:53:49,167 - app.main - INFO - Starting News App API...
+2025-06-22 22:53:49,168 - app.main - INFO - Database tables created
+2025-06-22 22:53:49,168 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:53:49,168 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:53:49,169 - apscheduler.scheduler - INFO - Added job "Fetch News Hourly" to job store "default"
+2025-06-22 22:53:49,169 - apscheduler.scheduler - INFO - Added job "Cleanup Old Articles" to job store "default"
+2025-06-22 22:53:49,169 - apscheduler.scheduler - INFO - Scheduler started
+2025-06-22 22:53:49,169 - app.services.cron_service - INFO - Scheduler started successfully
+2025-06-22 22:53:49,169 - app.main - INFO - Background scheduler started
+INFO:     Application startup complete.
+2025-06-22 22:53:59,536 - app.api.routes - ERROR - Error getting newest articles: (sqlite3.OperationalError) near "DESC": syntax error
+[SQL: SELECT news_articles.id AS news_articles_id, news_articles.title AS news_articles_title, news_articles.url AS news_articles_url, news_articles.top_image AS news_articles_top_image, news_articles.images AS news_articles_images, news_articles.videos AS news_articles_videos, news_articles.date AS news_articles_date, news_articles.short_description AS news_articles_short_description, news_articles.text AS news_articles_text, news_articles.publisher_href AS news_articles_publisher_href, news_articles.publisher_title AS news_articles_publisher_title, news_articles.created_at AS news_articles_created_at, news_articles.updated_at AS news_articles_updated_at, news_articles.is_active AS news_articles_is_active, news_articles.views AS news_articles_views, news_articles.likes AS news_articles_likes, news_articles.dislikes AS news_articles_dislikes 
+FROM news_articles 
+WHERE news_articles.is_active = 1 AND news_articles.top_image IS NOT NULL AND news_articles.top_image != ? ORDER BY news_articles.date NULLS LAST DESC, news_articles.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('', 5, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     127.0.0.1:61653 - "GET /api/v1/articles/newest?count=5 HTTP/1.1" 500 Internal Server Error
+2025-06-22 22:54:04,207 - app.api.routes - ERROR - Error getting newest articles: (sqlite3.OperationalError) near "DESC": syntax error
+[SQL: SELECT news_articles.id AS news_articles_id, news_articles.title AS news_articles_title, news_articles.url AS news_articles_url, news_articles.top_image AS news_articles_top_image, news_articles.images AS news_articles_images, news_articles.videos AS news_articles_videos, news_articles.date AS news_articles_date, news_articles.short_description AS news_articles_short_description, news_articles.text AS news_articles_text, news_articles.publisher_href AS news_articles_publisher_href, news_articles.publisher_title AS news_articles_publisher_title, news_articles.created_at AS news_articles_created_at, news_articles.updated_at AS news_articles_updated_at, news_articles.is_active AS news_articles_is_active, news_articles.views AS news_articles_views, news_articles.likes AS news_articles_likes, news_articles.dislikes AS news_articles_dislikes 
+FROM news_articles 
+WHERE news_articles.is_active = 1 AND news_articles.top_image IS NOT NULL AND news_articles.top_image != ? ORDER BY news_articles.date NULLS LAST DESC, news_articles.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('', 3, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     127.0.0.1:61741 - "GET /api/v1/articles/newest?count=3 HTTP/1.1" 500 Internal Server Error
+WARNING:  StatReload detected changes in 'app/services/news_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-06-22 22:54:12,610 - app.main - INFO - Stopping News App API...
+2025-06-22 22:54:12,610 - app.services.cron_service - INFO - Scheduler stopped successfully
+2025-06-22 22:54:12,610 - app.main - INFO - Background scheduler stopped
+2025-06-22 22:54:12,610 - apscheduler.scheduler - INFO - Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [78124]
+INFO:     Started server process [78349]
+INFO:     Waiting for application startup.
+2025-06-22 22:54:13,030 - app.main - INFO - Starting News App API...
+2025-06-22 22:54:13,031 - app.main - INFO - Database tables created
+2025-06-22 22:54:13,031 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:54:13,031 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:54:13,031 - apscheduler.scheduler - INFO - Added job "Fetch News Hourly" to job store "default"
+2025-06-22 22:54:13,031 - apscheduler.scheduler - INFO - Added job "Cleanup Old Articles" to job store "default"
+2025-06-22 22:54:13,031 - apscheduler.scheduler - INFO - Scheduler started
+2025-06-22 22:54:13,031 - app.services.cron_service - INFO - Scheduler started successfully
+2025-06-22 22:54:13,031 - app.main - INFO - Background scheduler started
+INFO:     Application startup complete.
+2025-06-22 22:54:23,664 - app.api.routes - ERROR - Error getting newest articles: (sqlite3.OperationalError) near "DESC": syntax error
+[SQL: SELECT news_articles.id AS news_articles_id, news_articles.title AS news_articles_title, news_articles.url AS news_articles_url, news_articles.top_image AS news_articles_top_image, news_articles.images AS news_articles_images, news_articles.videos AS news_articles_videos, news_articles.date AS news_articles_date, news_articles.short_description AS news_articles_short_description, news_articles.text AS news_articles_text, news_articles.publisher_href AS news_articles_publisher_href, news_articles.publisher_title AS news_articles_publisher_title, news_articles.created_at AS news_articles_created_at, news_articles.updated_at AS news_articles_updated_at, news_articles.is_active AS news_articles_is_active, news_articles.views AS news_articles_views, news_articles.likes AS news_articles_likes, news_articles.dislikes AS news_articles_dislikes 
+FROM news_articles 
+WHERE news_articles.is_active = 1 AND news_articles.top_image IS NOT NULL AND news_articles.top_image != ? ORDER BY news_articles.date NULLS LAST DESC, news_articles.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('', 3, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+INFO:     127.0.0.1:61783 - "GET /api/v1/articles/newest?count=3 HTTP/1.1" 500 Internal Server Error
+WARNING:  StatReload detected changes in 'app/services/news_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-06-22 22:54:31,244 - app.main - INFO - Stopping News App API...
+2025-06-22 22:54:31,244 - app.services.cron_service - INFO - Scheduler stopped successfully
+2025-06-22 22:54:31,244 - app.main - INFO - Background scheduler stopped
+2025-06-22 22:54:31,244 - apscheduler.scheduler - INFO - Scheduler has been shut down
+INFO:     Application shutdown complete.
+INFO:     Finished server process [78349]
+INFO:     Started server process [78472]
+INFO:     Waiting for application startup.
+2025-06-22 22:54:31,690 - app.main - INFO - Starting News App API...
+2025-06-22 22:54:31,691 - app.main - INFO - Database tables created
+2025-06-22 22:54:31,691 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:54:31,691 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-06-22 22:54:31,691 - apscheduler.scheduler - INFO - Added job "Fetch News Hourly" to job store "default"
+2025-06-22 22:54:31,691 - apscheduler.scheduler - INFO - Added job "Cleanup Old Articles" to job store "default"
+2025-06-22 22:54:31,691 - apscheduler.scheduler - INFO - Scheduler started
+2025-06-22 22:54:31,691 - app.services.cron_service - INFO - Scheduler started successfully
+2025-06-22 22:54:31,691 - app.main - INFO - Background scheduler started
+INFO:     Application startup complete.
+INFO:     127.0.0.1:61793 - "GET /api/v1/articles/newest?count=3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61806 - "GET /api/v1/articles/newest?count=8 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61813 - "GET /api/v1/articles/newest?count=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61815 - "GET /api/v1/articles/newest?count=10 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61829 - "GET /api/v1/articles/newest?count=10 HTTP/1.1" 200 OK
