@@ -295,6 +295,33 @@ async def get_articles_stats(db: Session = Depends(get_db)):
         logger.error(f"Error getting article stats: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get article statistics")
 
+@router.post("/cleanup-old-articles")
+async def cleanup_old_articles(db: Session = Depends(get_db)):
+    """Manually trigger cleanup of old articles (older than 7 days)"""
+    try:
+        logger.info("Manual cleanup job triggered...")
+        
+        # Clean up articles older than 7 days
+        from datetime import datetime, timedelta
+        from ..database.models import NewsArticle
+        
+        cutoff_date = datetime.now() - timedelta(days=7)
+        deleted_count = db.query(NewsArticle).filter(
+            NewsArticle.created_at < cutoff_date
+        ).delete()
+        
+        db.commit()
+        logger.info(f"Manual cleanup job completed. Articles deleted: {deleted_count}")
+        
+        return {
+            "message": "Cleanup completed successfully",
+            "articles_deleted": deleted_count,
+            "cutoff_date": cutoff_date.isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error in manual cleanup job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Cleanup failed: {str(e)}")
+
 @router.get("/health")
 async def health_check():
     """Health check endpoint"""
