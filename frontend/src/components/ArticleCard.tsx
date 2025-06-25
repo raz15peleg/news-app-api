@@ -105,9 +105,9 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   return (
     <div 
       className={`
-        relative bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer
+        relative bg-white rounded-2xl shadow-lg cursor-pointer
         transform transition-all duration-300 hover:scale-105 hover:shadow-xl
-        flex flex-col h-full
+        flex flex-col h-full overflow-hidden
         ${className}
       `}
       onClick={(e) => {
@@ -116,49 +116,52 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       }}
       dir={textDirection}
     >
-      {/* Article Image - flexible height */}
-      <div className="relative flex-shrink-0 min-h-[200px] max-h-[60%] overflow-hidden bg-gray-100 flex items-center justify-center">
-        <img
-          src={article.top_image || defaultImage}
-          alt={article.title}
-          className="max-w-full max-h-full w-auto h-auto object-contain"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.src = defaultImage;
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-      </div>
-
-      {/* Article Content - takes remaining space */}
-      <div className={`p-4 sm:p-6 flex flex-col flex-grow ${textAlign} min-h-0`} dir={textDirection}>
-        {/* Main Header - Short Description */}
-        <h2 className={`text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 leading-tight ${textAlign} line-clamp-3`}>
-          {article.short_description || article.title || 'No title available'}
-        </h2>
-
-        {/* Sub Header - Text with Vertical Scroll */}
-        <div className={`flex-grow mb-3 sm:mb-4 overflow-y-auto max-h-32 sm:max-h-40 ${textAlign}`}>
-          <p className={`text-sm sm:text-base text-gray-700 leading-relaxed ${textAlign} pr-2`}>
-            {article.text || article.short_description || 'No description available'}
-          </p>
+      {/* Entire card content is now scrollable */}
+      <div className="overflow-y-auto h-full flex flex-col">
+        {/* Article Image - flexible height */}
+        <div className="relative flex-shrink-0 min-h-[200px] max-h-[60%] overflow-hidden bg-gray-100 flex items-center justify-center">
+          <img
+            src={article.top_image || defaultImage}
+            alt={article.title}
+            className="max-w-full max-h-full w-auto h-auto object-contain"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = defaultImage;
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
         </div>
 
-        {/* Date and location info - always visible at bottom */}
-        <div className={`flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm ${flexAlign} border-t border-gray-200 pt-3 mt-auto flex-shrink-0 bg-gray-50 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-2`}>
-          <div className="flex items-center gap-1 bg-blue-100 px-3 py-1.5 rounded-full shadow-sm">
-            <Calendar size={14} className="text-blue-600" />
-            <span className="font-semibold text-blue-700 whitespace-nowrap text-sm">
-              {article.date ? getSimpleDate(article.date, article.language) : (article.language === 'he' ? 'אין תאריך' : 'No date')}
-            </span>
+        {/* Article Content - takes remaining space */}
+        <div className={`p-4 sm:p-6 flex flex-col flex-grow ${textAlign} min-h-0`} dir={textDirection}>
+          {/* Main Header - Short Description */}
+          <h2 className={`text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 leading-tight ${textAlign}`}>
+            {article.short_description || article.title || 'No title available'}
+          </h2>
+
+          {/* Article Text - no separate scroll container */}
+          <div className={`flex-grow mb-3 sm:mb-4 ${textAlign}`}>
+            <p className={`text-sm sm:text-base text-gray-700 leading-relaxed ${textAlign}`}>
+              {article.text || article.short_description || 'No description available'}
+            </p>
           </div>
-          <div className="flex items-center gap-1 bg-green-100 px-3 py-1.5 rounded-full shadow-sm">
-            <span className="text-lg emoji" role="img" aria-label="location flag">{getLocationFlag(article.location)}</span>
-            <span className="font-semibold text-green-700 whitespace-nowrap text-sm">{article.location?.toUpperCase()}</span>
-          </div>
-          <div className="flex items-center gap-1 bg-purple-100 px-3 py-1.5 rounded-full shadow-sm">
-            <span className="text-lg emoji" role="img" aria-label="language flag">{getLanguageFlag(article.language)}</span>
-            <span className="font-semibold text-purple-700 whitespace-nowrap text-sm">{article.language?.toUpperCase()}</span>
+
+          {/* Date and location info - always visible at bottom */}
+          <div className={`flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm ${flexAlign} border-t border-gray-200 pt-3 mt-auto flex-shrink-0 bg-gray-50 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-2`}>
+            <div className="flex items-center gap-1 bg-blue-100 px-3 py-1.5 rounded-full shadow-sm">
+              <Calendar size={14} className="text-blue-600" />
+              <span className="font-semibold text-blue-700 whitespace-nowrap text-sm">
+                {article.date ? getSimpleDate(article.date, article.language) : (article.language === 'he' ? 'אין תאריך' : 'No date')}
+              </span>
+            </div>
+            <div className="flex items-center gap-1 bg-green-100 px-3 py-1.5 rounded-full shadow-sm">
+              <span className="text-lg emoji" role="img" aria-label="location flag">{getLocationFlag(article.location)}</span>
+              <span className="font-semibold text-green-700 whitespace-nowrap text-sm">{article.location?.toUpperCase()}</span>
+            </div>
+            <div className="flex items-center gap-1 bg-purple-100 px-3 py-1.5 rounded-full shadow-sm">
+              <span className="text-lg emoji" role="img" aria-label="language flag">{getLanguageFlag(article.language)}</span>
+              <span className="font-semibold text-purple-700 whitespace-nowrap text-sm">{article.language?.toUpperCase()}</span>
+            </div>
           </div>
         </div>
       </div>

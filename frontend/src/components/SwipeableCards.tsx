@@ -80,46 +80,41 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
             className="h-full cursor-pointer hover:shadow-xl transition-shadow"
           />
         </div>
-      </div>
 
-      {/* Navigation buttons - now below the card */}
-      <div className="flex justify-center items-center gap-4 lg:gap-6 xl:gap-8 pb-4">
+        {/* Left Arrow - positioned on the left side of the card */}
         <button
-          onClick={onPrevious}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPrevious();
+          }}
           disabled={!hasPrevious}
-          className={`rounded-full p-3 lg:p-4 xl:p-5 shadow-lg transition-colors ${
+          className={`absolute left-2 top-1/2 transform -translate-y-1/2 z-60 rounded-full p-2 lg:p-3 shadow-lg transition-colors ${
             hasPrevious 
               ? 'bg-blue-500 hover:bg-blue-600 text-white' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
           aria-label="Previous article"
         >
-          <svg className="w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 24 24" fill="currentColor">
             <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
           </svg>
         </button>
-        
+
+        {/* Right Arrow - positioned on the right side of the card */}
         <button
-          onClick={() => onTap(currentArticle)}
-          className="bg-green-500 hover:bg-green-600 text-white rounded-full p-3 lg:p-4 xl:p-5 shadow-lg transition-colors"
-          aria-label="Read full article"
-        >
-          <svg className="w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-          </svg>
-        </button>
-        
-        <button
-          onClick={onNext}
+          onClick={(e) => {
+            e.stopPropagation();
+            onNext();
+          }}
           disabled={!hasNext}
-          className={`rounded-full p-3 lg:p-4 xl:p-5 shadow-lg transition-colors ${
+          className={`absolute right-2 top-1/2 transform -translate-y-1/2 z-60 rounded-full p-2 lg:p-3 shadow-lg transition-colors ${
             hasNext 
               ? 'bg-blue-500 hover:bg-blue-600 text-white' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
           aria-label="Next article"
         >
-          <svg className="w-6 h-6 lg:w-8 lg:h-8 xl:w-10 xl:h-10" viewBox="0 0 24 24" fill="currentColor">
+          <svg className="w-5 h-5 lg:w-6 lg:h-6" viewBox="0 0 24 24" fill="currentColor">
             <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
           </svg>
         </button>
