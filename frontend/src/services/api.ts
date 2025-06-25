@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { NewsArticle, NewsArticleList, UserAction } from '../types/news';
+import { NewsArticle, NewsArticleList } from '../types/news';
 
 const API_BASE_URL = '/api/v1';
 
@@ -47,26 +47,32 @@ api.interceptors.response.use(
 
 export const newsApi = {
   // Get paginated articles
-  async getArticles(skip: number = 0, limit: number = 20, randomOrder: boolean = false): Promise<NewsArticleList> {
-    const response = await api.get('/articles', {
-      params: { skip, limit, random_order: randomOrder }
-    });
+  async getArticles(skip: number = 0, limit: number = 20, randomOrder: boolean = false, language?: string): Promise<NewsArticleList> {
+    const params: any = { skip, limit, random_order: randomOrder };
+    if (language) {
+      params.language = language;
+    }
+    const response = await api.get('/articles', { params });
     return response.data;
   },
 
   // Get random articles for swipe interface
-  async getRandomArticles(count: number = 100): Promise<{ articles: NewsArticle[] }> {
-    const response = await api.get('/articles/random', {
-      params: { count }
-    });
+  async getRandomArticles(count: number = 100, language?: string): Promise<{ articles: NewsArticle[] }> {
+    const params: any = { count };
+    if (language) {
+      params.language = language;
+    }
+    const response = await api.get('/articles/random', { params });
     return response.data;
   },
 
   // Get newest articles for swipe interface
-  async getNewestArticles(count: number = 100): Promise<{ articles: NewsArticle[] }> {
-    const response = await api.get('/articles/newest', {
-      params: { count }
-    });
+  async getNewestArticles(count: number = 100, language?: string): Promise<{ articles: NewsArticle[] }> {
+    const params: any = { count };
+    if (language) {
+      params.language = language;
+    }
+    const response = await api.get('/articles/newest', { params });
     return response.data;
   },
 
@@ -77,7 +83,7 @@ export const newsApi = {
   },
 
   // Record user action on article
-  async recordAction(articleId: number, action: 'like' | 'dislike' | 'view'): Promise<{ message: string }> {
+  async recordAction(articleId: number, action: 'view'): Promise<{ message: string }> {
     const response = await api.post(`/articles/${articleId}/action`, {
       action,
       article_id: articleId
@@ -86,8 +92,24 @@ export const newsApi = {
   },
 
   // Manually fetch news (admin function)
-  async fetchNews(): Promise<{ message: string; articles_saved: number }> {
-    const response = await api.post('/fetch-news');
+  async fetchNews(language?: string): Promise<{ message: string; articles_saved: number; language: string }> {
+    const params: any = {};
+    if (language) {
+      params.language = language;
+    }
+    const response = await api.post('/fetch-news', {}, { params });
+    return response.data;
+  },
+
+  // Get supported languages
+  async getSupportedLanguages(): Promise<{ languages: Array<{ code: string; name: string; location: string }> }> {
+    const response = await api.get('/languages');
+    return response.data;
+  },
+
+  // Get article statistics by language
+  async getArticleStats(): Promise<{ total_articles: number; by_language: Record<string, number> }> {
+    const response = await api.get('/articles/stats');
     return response.data;
   },
 

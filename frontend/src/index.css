@@ -28,6 +28,27 @@
   .aspect-video {
     aspect-ratio: 16 / 9;
   }
+
+  /* RTL utilities */
+  .rtl {
+    direction: rtl;
+  }
+  
+  .ltr {
+    direction: ltr;
+  }
+
+  /* Emoji display utilities */
+  .emoji {
+    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', 'Android Emoji', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    display: inline-block;
+    vertical-align: middle;
+  }
 }
 
 /* Global styles */
@@ -38,6 +59,65 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hebrew font support */
+[lang="he"], .hebrew {
+  font-family: 'Segoe UI', 'Arial Hebrew', 'Noto Sans Hebrew', 'David', 'Times New Roman', serif;
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL layout adjustments */
+[dir="rtl"] {
+  text-align: right;
+  font-family: 'Segoe UI', 'Arial Hebrew', 'Tahoma', sans-serif;
+}
+
+/* Text alignment overrides */
+[dir="rtl"] .text-left {
+  text-align: right !important;
+}
+
+[dir="rtl"] .text-right {
+  text-align: right !important;
+}
+
+[dir="ltr"] .text-left {
+  text-align: left !important;
+}
+
+[dir="ltr"] .text-right {
+  text-align: left !important;
+}
+
+/* Flex layout adjustments for RTL */
+[dir="rtl"] .justify-end {
+  justify-content: flex-end !important;
+}
+
+[dir="rtl"] .justify-start {
+  justify-content: flex-start !important;
+}
+
+/* Button alignment for RTL */
+[dir="rtl"] .mt-4 {
+  text-align: right;
+}
+
+[dir="ltr"] .mt-4 {
+  text-align: left;
+}
+
+/* RTL button spacing */
+[dir="rtl"] button .mr-2 {
+  margin-right: 0;
+  margin-left: 0.5rem;
+}
+
+/* RTL space adjustments */
+[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
 }
 
 /* Custom scrollbar */
@@ -157,4 +237,6 @@ button:focus-visible {
 /* Dark mode support (future enhancement) */
 @media (prefers-color-scheme: dark) {
   /* Dark mode styles would go here */
-} 
+}
+
+/* End of RTL Support */ 

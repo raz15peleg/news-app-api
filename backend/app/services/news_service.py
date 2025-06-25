@@ -15,10 +15,21 @@ class NewsService:
     def __init__(self):
         self.rapidapi_key = "8028f92d37mshaee587861c286bfp1f370djsn6a351cc6de16"
         self.rapidapi_host = "newsnow.p.rapidapi.com"
-        self.base_url = "https://newsnow.p.rapidapi.com/newsv2_top_news"
+        self.base_url_top_news = "https://newsnow.p.rapidapi.com/newsv2_top_news"
+        self.base_url_search = "https://newsnow.p.rapidapi.com/newsv2"
+        
+        # Supported languages configuration
+        self.supported_languages = {
+            "en": {"name": "English", "location": "us"},
+            "he": {"name": "Hebrew", "location": "il"}  # Hebrew content from Israel
+        }
+        
+    def get_supported_languages(self):
+        """Get list of supported languages"""
+        return self.supported_languages
         
     def fetch_news_from_api(self, location: str = "us", language: str = "en", page: int = 1) -> Optional[dict]:
-        """Fetch news from RapidAPI"""
+        """Fetch news from RapidAPI for the past 12 hours"""
         try:
             headers = {
                 'Content-Type': 'application/json',
@@ -28,20 +39,42 @@ class NewsService:
             
             # Get current time for the API request
             now = datetime.now()
-            from_date = (now - timedelta(hours=1)).strftime("%d/%m/%Y")
+            
+            # Fetch news from the past 12 hours for both languages
+            from_date = (now - timedelta(hours=12)).strftime("%d/%m/%Y")
             to_date = now.strftime("%d/%m/%Y")
             
-            payload = {
-                "location": location,
-                "language": language,
-                "page": page,
-                "time_bounded": True,
-                "from_date": from_date,
-                "to_date": to_date
-            }
+            # Use different endpoint and payload structure for Hebrew
+            if language == "he":
+                # For Hebrew, use the search endpoint
+                url = self.base_url_search
+                payload = {
+                    "query": "חדשות",  # Hebrew word for "news"
+                    "location": location,
+                    "language": language,
+                    "page": page,
+                    "time_bounded": True,
+                    "from_date": from_date,
+                    "to_date": to_date
+                }
+            else:
+                # For English and other languages, use the top news endpoint
+                url = self.base_url_top_news
+                payload = {
+                    "location": location,
+                    "language": language,
+                    "page": page,
+                    "time_bounded": True,
+                    "from_date": from_date,
+                    "to_date": to_date
+                }
+            
+            logger.info(f"Fetching news for language: {language}, location: {location}, page: {page} (past 12 hours: {from_date} to {to_date})")
+            logger.debug(f"Using URL: {url}")
+            logger.debug(f"Payload: {payload}")
             
             response = requests.post(
-                self.base_url,
+                url,
                 headers=headers,
                 json=payload,
                 timeout=30
@@ -57,7 +90,7 @@ class NewsService:
             logger.error(f"Error fetching news from API: {str(e)}")
             return None
     
-    def parse_and_save_articles(self, db: Session, api_response: dict) -> int:
+    def parse_and_save_articles(self, db: Session, api_response: dict, language: str = "en", location: str = "us") -> int:
         """Parse API response and save articles to database"""
         saved_count = 0
         skipped_no_image = 0
@@ -106,7 +139,7 @@ class NewsService:
                     publisher_href = publisher.get('href') if publisher else None
                     publisher_title = publisher.get('title') if publisher else None
                     
-                    # Create article
+                    # Create article with language and location
                     article = NewsArticle(
                         title=article_data.get('title', 'No Title'),
                         url=article_data.get('url', ''),
@@ -118,6 +151,8 @@ class NewsService:
                         text=article_data.get('text'),
                         publisher_href=publisher_href,
                         publisher_title=publisher_title,
+                        language=language,
+                        location=location,
                         is_active=True
                     )
                     
@@ -129,7 +164,7 @@ class NewsService:
                     continue
             
             db.commit()
-            logger.info(f"Successfully saved {saved_count} new articles, skipped {skipped_no_image} articles without images")
+            logger.info(f"Successfully saved {saved_count} new articles for {language}/{location}, skipped {skipped_no_image} articles without images")
             return saved_count
             
         except Exception as e:
@@ -138,12 +173,16 @@ class NewsService:
             return 0
     
     def get_articles(self, db: Session, skip: int = 0, limit: int = 20, 
-                    only_active: bool = True) -> List[NewsArticle]:
+                    only_active: bool = True, language: str = None) -> List[NewsArticle]:
         """Get articles from database ordered by publication date (newest first)"""
         query = db.query(NewsArticle)
         
         if only_active:
             query = query.filter(NewsArticle.is_active == True)
+        
+        # Filter by language if specified
+        if language:
+            query = query.filter(NewsArticle.language == language)
         
         # Filter out articles without images
         query = query.filter(
@@ -185,20 +224,43 @@ class NewsService:
             db.rollback()
             return False
     
-    def fetch_and_save_latest_news(self, db: Session) -> int:
-        """Fetch latest news and save to database - used by cron job"""
+    def fetch_and_save_latest_news(self, db: Session, language: str = None) -> int:
+        """Fetch latest news from the past 12 hours and save to database - used by cron job"""
         try:
-            logger.info("Starting news fetch job...")
+            logger.info(f"Starting 12-hour news fetch job for language: {language or 'all languages'}")
             
-            # Fetch news from multiple pages to get more articles
+            # Determine which languages to fetch
+            languages_to_fetch = []
+            if language:
+                if language in self.supported_languages:
+                    languages_to_fetch.append((language, self.supported_languages[language]["location"]))
+                else:
+                    logger.error(f"Unsupported language: {language}")
+                    return 0
+            else:
+                # Fetch all supported languages
+                for lang_code, lang_config in self.supported_languages.items():
+                    languages_to_fetch.append((lang_code, lang_config["location"]))
+            
             total_saved = 0
-            for page in range(1, 4):  # Fetch first 3 pages
-                api_response = self.fetch_news_from_api(page=page)
-                if api_response:
-                    saved = self.parse_and_save_articles(db, api_response)
-                    total_saved += saved
             
-            logger.info(f"News fetch job completed. Total articles saved: {total_saved}")
+            # Fetch news for each language from the past 12 hours
+            for lang_code, location in languages_to_fetch:
+                logger.info(f"Fetching 12-hour news cycle for {lang_code} from {location}")
+                
+                # Fetch news from multiple pages to get more articles from the 12-hour window
+                for page in range(1, 5):  # Fetch first 5 pages to get more articles from 12-hour window
+                    api_response = self.fetch_news_from_api(location=location, language=lang_code, page=page)
+                    if api_response:
+                        saved = self.parse_and_save_articles(db, api_response, language=lang_code, location=location)
+                        total_saved += saved
+                        
+                        # If no articles were saved from this page, likely no more new articles
+                        if saved == 0:
+                            logger.info(f"No new articles found on page {page} for {lang_code}, stopping pagination")
+                            break
+            
+            logger.info(f"12-hour news fetch job completed. Total articles saved: {total_saved}")
             return total_saved
             
         except Exception as e:

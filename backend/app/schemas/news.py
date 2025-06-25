@@ -17,6 +17,8 @@ class NewsArticleBase(BaseModel):
     text: Optional[str] = None
     publisher_href: Optional[str] = None
     publisher_title: Optional[str] = None
+    language: str = "en"  # Language code (en, he, etc.)
+    location: str = "us"  # Location code (us, il, etc.)
 
 class NewsArticleCreate(NewsArticleBase):
     pass
@@ -32,6 +34,8 @@ class NewsArticleUpdate(BaseModel):
     text: Optional[str] = None
     publisher_href: Optional[str] = None
     publisher_title: Optional[str] = None
+    language: Optional[str] = None
+    location: Optional[str] = None
     is_active: Optional[bool] = None
 
 class NewsArticleResponse(NewsArticleBase):
@@ -40,8 +44,6 @@ class NewsArticleResponse(NewsArticleBase):
     updated_at: Optional[datetime] = None
     is_active: bool
     views: int
-    likes: int
-    dislikes: int
     
     class Config:
         from_attributes = True
@@ -54,9 +56,18 @@ class NewsArticleList(BaseModel):
     has_next: bool
 
 class UserAction(BaseModel):
-    action: str  # 'like', 'dislike', 'view'
+    action: str  # 'view'
     article_id: int
 
 class NewsAPIResponse(BaseModel):
     count: int
-    news: List[dict] 
+    news: List[dict]
+
+# Language configuration
+class LanguageConfig(BaseModel):
+    code: str
+    name: str
+    location: str
+
+class SupportedLanguages(BaseModel):
+    languages: List[LanguageConfig] 

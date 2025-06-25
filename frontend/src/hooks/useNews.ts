@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { NewsArticle } from '../types/news';
+import { NewsArticle, Language } from '../types/news';
 import { newsApi } from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -8,18 +8,35 @@ export const useNews = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isRandomMode, setIsRandomMode] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [supportedLanguages, setSupportedLanguages] = useState<Language[]>([]);
 
-  const fetchNewestArticles = useCallback(async (count: number = 100) => {
+  const fetchSupportedLanguages = useCallback(async () => {
+    try {
+      const response = await newsApi.getSupportedLanguages();
+      // Add flags to languages
+      const languagesWithFlags = response.languages.map((lang: any) => ({
+        ...lang,
+        flag: lang.code === 'en' ? '🇺🇸' : lang.code === 'he' ? '🇮🇱' : '🌐'
+      }));
+      setSupportedLanguages(languagesWithFlags);
+    } catch (err) {
+      console.error('Failed to fetch supported languages:', err);
+    }
+  }, []);
+
+  const fetchNewestArticles = useCallback(async (count: number = 100, language?: string) => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await newsApi.getNewestArticles(count);
+      const langToUse = language || selectedLanguage;
+      const response = await newsApi.getNewestArticles(count, langToUse);
       setArticles(response.articles);
       setCurrentIndex(0);
-      setIsRandomMode(false);
-      toast.success(`Loaded ${response.articles.length} newest articles`);
+      
+      const langName = supportedLanguages.find(l => l.code === langToUse)?.name || langToUse;
+      toast.success(`Loaded ${response.articles.length} newest ${langName} articles`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch articles';
       setError(errorMessage);
@@ -27,34 +44,7 @@ export const useNews = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const fetchRandomArticles = useCallback(async (count: number = 100) => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const response = await newsApi.getRandomArticles(count);
-      setArticles(response.articles);
-      setCurrentIndex(0);
-      setIsRandomMode(true);
-      toast.success(`Loaded ${response.articles.length} random articles`);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch articles';
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const toggleRandomMode = useCallback(() => {
-    if (isRandomMode) {
-      fetchNewestArticles(100);
-    } else {
-      fetchRandomArticles(100);
-    }
-  }, [isRandomMode, fetchNewestArticles, fetchRandomArticles]);
+  }, [selectedLanguage, supportedLanguages]);
 
   const recordAction = useCallback(async (articleId: number, action: 'view') => {
     try {
@@ -71,14 +61,10 @@ export const useNews = () => {
       
       // Load more articles if running low (keep this for future expansion)
       if (currentIndex >= articles.length - 3 && articles.length < 50) {
-        if (isRandomMode) {
-          await fetchRandomArticles(100);
-        } else {
-          await fetchNewestArticles(100);
-        }
+        await fetchNewestArticles(100);
       }
     }
-  }, [articles.length, currentIndex, fetchRandomArticles, fetchNewestArticles, isRandomMode]);
+  }, [articles.length, currentIndex, fetchNewestArticles]);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
@@ -112,20 +98,36 @@ export const useNews = () => {
     setCurrentIndex(0);
   }, []);
 
+  const changeLanguage = useCallback(async (languageCode: string) => {
+    if (languageCode === selectedLanguage) return;
+    
+    setSelectedLanguage(languageCode);
+    
+    // Refetch articles with new language
+    await fetchNewestArticles(100, languageCode);
+  }, [selectedLanguage, fetchNewestArticles]);
+
   // Initial load
   useEffect(() => {
-    fetchNewestArticles();
-  }, [fetchNewestArticles]);
+    fetchSupportedLanguages();
+  }, [fetchSupportedLanguages]);
+
+  useEffect(() => {
+    if (supportedLanguages.length > 0) {
+      fetchNewestArticles();
+    }
+  }, [supportedLanguages, fetchNewestArticles]);
 
   return {
     articles,
     loading,
     error,
     currentIndex,
-    isRandomMode,
+    selectedLanguage,
+    supportedLanguages,
     fetchNewestArticles,
-    fetchRandomArticles,
-    toggleRandomMode,
+    fetchSupportedLanguages,
+    changeLanguage,
     goToNext,
     goToPrevious,
     openArticle,

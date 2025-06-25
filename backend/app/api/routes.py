@@ -23,6 +23,7 @@ async def get_articles(
     skip: int = Query(0, ge=0, description="Number of articles to skip"),
     limit: int = Query(20, ge=1, le=100, description="Number of articles to return"),
     random_order: bool = Query(False, description="Whether to return articles in random order"),
+    language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
     db: Session = Depends(get_db)
 ):
     """Get paginated list of news articles"""
@@ -32,27 +33,40 @@ async def get_articles(
             from sqlalchemy import func, and_
             from ..database.models import NewsArticle
             
-            articles = db.query(NewsArticle).filter(
+            query = db.query(NewsArticle).filter(
                 and_(
                     NewsArticle.is_active == True,
                     NewsArticle.top_image.isnot(None),
                     NewsArticle.top_image != ''
                 )
-            ).order_by(func.random()).offset(skip).limit(limit).all()
+            )
+            
+            # Filter by language if specified
+            if language:
+                query = query.filter(NewsArticle.language == language)
+                
+            articles = query.order_by(func.random()).offset(skip).limit(limit).all()
         else:
             # Get articles ordered by newest first
-            articles = news_service.get_articles(db, skip=skip, limit=limit)
+            articles = news_service.get_articles(db, skip=skip, limit=limit, language=language)
         
         # Get total count for pagination
         from ..database.models import NewsArticle
         from sqlalchemy import and_
-        total = db.query(NewsArticle).filter(
+        
+        count_query = db.query(NewsArticle).filter(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
                 NewsArticle.top_image != ''
             )
-        ).count()
+        )
+        
+        # Filter by language if specified
+        if language:
+            count_query = count_query.filter(NewsArticle.language == language)
+            
+        total = count_query.count()
         
         has_next = skip + limit < total
         
@@ -68,31 +82,47 @@ async def get_articles(
         raise HTTPException(status_code=500, detail="Failed to fetch articles")
 
 @router.get("/articles/random")
-async def get_random_articles(count: int = Query(100, ge=1, le=1000), db: Session = Depends(get_db)):
+async def get_random_articles(
+    count: int = Query(50, ge=1, le=1000), 
+    language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
+    db: Session = Depends(get_db)
+):
     """Get random articles for the swipe interface"""
     try:
         from sqlalchemy import func, and_
         from ..database.models import NewsArticle
         
         # Get total count of available articles
-        total_available = db.query(NewsArticle).filter(
+        count_query = db.query(NewsArticle).filter(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
                 NewsArticle.top_image != ''
             )
-        ).count()
+        )
+        
+        # Filter by language if specified
+        if language:
+            count_query = count_query.filter(NewsArticle.language == language)
+            
+        total_available = count_query.count()
         
         # If count is higher than available, use all available
         actual_count = min(count, total_available)
         
-        articles = db.query(NewsArticle).filter(
+        article_query = db.query(NewsArticle).filter(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
                 NewsArticle.top_image != ''
             )
-        ).order_by(func.random()).limit(actual_count).all()
+        )
+        
+        # Filter by language if specified
+        if language:
+            article_query = article_query.filter(NewsArticle.language == language)
+            
+        articles = article_query.order_by(func.random()).limit(actual_count).all()
         
         return {"articles": articles}
     except Exception as e:
@@ -100,25 +130,35 @@ async def get_random_articles(count: int = Query(100, ge=1, le=1000), db: Sessio
         raise HTTPException(status_code=500, detail="Failed to fetch random articles")
 
 @router.get("/articles/newest")
-async def get_newest_articles(count: int = Query(100, ge=1, le=1000), db: Session = Depends(get_db)):
+async def get_newest_articles(
+    count: int = Query(50, ge=1, le=1000), 
+    language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
+    db: Session = Depends(get_db)
+):
     """Get newest articles for the swipe interface"""
     try:
         from sqlalchemy import and_
         from ..database.models import NewsArticle
         
         # Get total count of available articles
-        total_available = db.query(NewsArticle).filter(
+        count_query = db.query(NewsArticle).filter(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
                 NewsArticle.top_image != ''
             )
-        ).count()
+        )
+        
+        # Filter by language if specified
+        if language:
+            count_query = count_query.filter(NewsArticle.language == language)
+            
+        total_available = count_query.count()
         
         # If count is higher than available, use all available
         actual_count = min(count, total_available)
         
-        articles = news_service.get_articles(db, skip=0, limit=actual_count)
+        articles = news_service.get_articles(db, skip=0, limit=actual_count, language=language)
         return {"articles": articles}
     except Exception as e:
         logger.error(f"Error getting newest articles: {str(e)}")
@@ -165,14 +205,24 @@ async def article_action(
         raise HTTPException(status_code=500, detail="Failed to record action")
 
 @router.post("/fetch-news")
-async def fetch_news_manually(db: Session = Depends(get_db)):
+async def fetch_news_manually(
+    language: str = Query(None, description="Language code to fetch (en, he, etc.). If not specified, fetches all languages"),
+    db: Session = Depends(get_db)
+):
     """Manually trigger news fetching (for testing/admin use)"""
     try:
-        saved_count = news_service.fetch_and_save_latest_news(db)
+        # Validate language if specified
+        if language and language not in news_service.get_supported_languages():
+            raise HTTPException(status_code=400, detail=f"Unsupported language: {language}")
+            
+        saved_count = news_service.fetch_and_save_latest_news(db, language=language)
         return {
             "message": "News fetch completed successfully", 
-            "articles_saved": saved_count
+            "articles_saved": saved_count,
+            "language": language or "all languages"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in manual news fetch: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch news")
@@ -189,6 +239,61 @@ async def get_scheduler_status():
     except Exception as e:
         logger.error(f"Error getting scheduler status: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to get scheduler status")
+
+@router.get("/languages")
+async def get_supported_languages():
+    """Get list of supported languages"""
+    try:
+        languages = news_service.get_supported_languages()
+        return {
+            "languages": [
+                {
+                    "code": code,
+                    "name": config["name"],
+                    "location": config["location"]
+                }
+                for code, config in languages.items()
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error getting supported languages: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get supported languages")
+
+@router.get("/articles/stats")
+async def get_articles_stats(db: Session = Depends(get_db)):
+    """Get article statistics by language"""
+    try:
+        from sqlalchemy import func, and_
+        from ..database.models import NewsArticle
+        
+        # Get article counts by language
+        stats = db.query(
+            NewsArticle.language,
+            func.count(NewsArticle.id).label('count')
+        ).filter(
+            and_(
+                NewsArticle.is_active == True,
+                NewsArticle.top_image.isnot(None),
+                NewsArticle.top_image != ''
+            )
+        ).group_by(NewsArticle.language).all()
+        
+        # Get total count
+        total = db.query(NewsArticle).filter(
+            and_(
+                NewsArticle.is_active == True,
+                NewsArticle.top_image.isnot(None),
+                NewsArticle.top_image != ''
+            )
+        ).count()
+        
+        return {
+            "total_articles": total,
+            "by_language": {stat.language: stat.count for stat in stats}
+        }
+    except Exception as e:
+        logger.error(f"Error getting article stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get article statistics")
 
 @router.get("/health")
 async def health_check():

@@ -16,26 +16,26 @@ class CronService:
     def start_scheduler(self):
         """Start the background scheduler"""
         try:
-            # Add job to fetch news every hour
+            # Add job to fetch news every 12 hours (twice a day at 12:00 AM and 12:00 PM)
             self.scheduler.add_job(
                 func=self.fetch_news_job,
-                trigger=CronTrigger(minute=0),  # Run at the start of every hour
-                id='fetch_news_hourly',
-                name='Fetch News Hourly',
+                trigger=CronTrigger(hour='0,12', minute=0),  # Run at 12:00 AM and 12:00 PM
+                id='fetch_news_12hourly',
+                name='Fetch News Every 12 Hours',
                 replace_existing=True
             )
             
-            # Add job to clean up old articles daily at midnight
+            # Add job to clean up old articles daily at 2 AM
             self.scheduler.add_job(
                 func=self.cleanup_old_articles_job,
-                trigger=CronTrigger(hour=0, minute=0),  # Run daily at midnight
+                trigger=CronTrigger(hour=2, minute=0),  # Run daily at 2 AM
                 id='cleanup_old_articles',
                 name='Cleanup Old Articles',
                 replace_existing=True
             )
             
             self.scheduler.start()
-            logger.info("Scheduler started successfully")
+            logger.info("Scheduler started successfully - News fetching every 12 hours (12:00 AM and 12:00 PM)")
             
         except Exception as e:
             logger.error(f"Failed to start scheduler: {str(e)}")
@@ -49,9 +49,9 @@ class CronService:
             logger.error(f"Failed to stop scheduler: {str(e)}")
     
     async def fetch_news_job(self):
-        """Background job to fetch news"""
+        """Background job to fetch news from the past 12 hours"""
         try:
-            logger.info("Running scheduled news fetch job...")
+            logger.info("Running scheduled news fetch job (12-hour cycle)...")
             db = SessionLocal()
             try:
                 saved_count = self.news_service.fetch_and_save_latest_news(db)

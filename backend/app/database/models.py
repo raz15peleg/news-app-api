@@ -17,6 +17,10 @@ class NewsArticle(Base):
     publisher_href = Column(String(500), nullable=True)
     publisher_title = Column(String(200), nullable=True)
     
+    # Language and location fields
+    language = Column(String(10), nullable=False, default='en', index=True)  # Language code (en, he, etc.)
+    location = Column(String(10), nullable=False, default='us', index=True)  # Location code (us, il, etc.)
+    
     # Metadata fields
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -24,8 +28,6 @@ class NewsArticle(Base):
     
     # User interaction fields
     views = Column(Integer, default=0)
-    likes = Column(Integer, default=0)
-    dislikes = Column(Integer, default=0)
 
     def __repr__(self):
-        return f"<NewsArticle(id={self.id}, title='{self.title[:50]}...')>" 
+        return f"<NewsArticle(id={self.id}, title='{self.title[:50]}...', language='{self.language}')>" 

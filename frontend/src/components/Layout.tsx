@@ -1,20 +1,29 @@
 import React from 'react';
-import { Newspaper, RefreshCw, Settings, Calendar, Shuffle } from 'lucide-react';
+import { Newspaper, RefreshCw, Settings } from 'lucide-react';
+import { Language } from '../types/news';
 
 interface LayoutProps {
   children: React.ReactNode;
   onRefresh?: () => void;
-  onToggleRandom?: () => void;
   loading?: boolean;
-  isRandomMode?: boolean;
+  // Language selector props
+  selectedLanguage?: string;
+  supportedLanguages?: Language[];
+  onLanguageChange?: (language: string) => void;
+  // Stats props
+  currentIndex?: number;
+  totalArticles?: number;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
   children, 
   onRefresh, 
-  onToggleRandom,
   loading = false,
-  isRandomMode = false 
+  selectedLanguage,
+  supportedLanguages = [],
+  onLanguageChange,
+  currentIndex = 0,
+  totalArticles = 0
 }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
@@ -28,34 +37,47 @@ export const Layout: React.FC<LayoutProps> = ({
               <h1 className="text-xl font-bold text-gray-900">NewsSwipe</h1>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center space-x-4">
-              {onToggleRandom && (
-                <button
-                  onClick={onToggleRandom}
-                  disabled={loading}
-                  className={`flex items-center px-4 py-2 rounded-lg transition-colors ${
-                    loading
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : isRandomMode
-                      ? 'bg-purple-600 text-white hover:bg-purple-700'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {isRandomMode ? (
-                    <>
-                      <Calendar size={16} className="mr-2" />
-                      Newest
-                    </>
-                  ) : (
-                    <>
-                      <Shuffle size={16} className="mr-2" />
-                      Random
-                    </>
-                  )}
-                </button>
+            {/* Center - Language Selector and Stats */}
+            <div className="flex items-center gap-6">
+              {/* Language Selector */}
+              {supportedLanguages.length > 0 && onLanguageChange && (
+                <div className="flex items-center">
+                  <select
+                    value={selectedLanguage || ''}
+                    onChange={(e) => onLanguageChange(e.target.value)}
+                    disabled={loading}
+                    className={`px-3 py-2 rounded-lg border border-gray-300 text-sm font-medium transition-colors ${
+                      loading
+                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    }`}
+                  >
+                    {supportedLanguages.map((language) => (
+                      <option key={language.code} value={language.code}>
+                        {language.flag} {language.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               )}
-              
+
+              {/* Stats */}
+              {totalArticles > 0 && (
+                <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2">
+                  <div className="text-sm">
+                    <span className="font-semibold text-blue-600">{currentIndex + 1}</span>
+                    <span className="text-gray-500"> of {totalArticles}</span>
+                  </div>
+                  <div className="w-px h-4 bg-gray-300"></div>
+                  <div className="text-sm text-gray-500">
+                    {totalArticles - currentIndex - 1} remaining
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center space-x-4">
               {onRefresh && (
                 <button
                   onClick={onRefresh}
@@ -70,7 +92,10 @@ export const Layout: React.FC<LayoutProps> = ({
                     size={16} 
                     className={`mr-2 ${loading ? 'animate-spin' : ''}`} 
                   />
-                  {loading ? 'Loading...' : 'Refresh'}
+                  {loading 
+                    ? (selectedLanguage === 'he' ? 'טוען...' : 'Loading...') 
+                    : (selectedLanguage === 'he' ? 'רענן' : 'Refresh')
+                  }
                 </button>
               )}
               

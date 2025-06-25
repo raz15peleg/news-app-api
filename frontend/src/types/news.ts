@@ -12,15 +12,16 @@ export interface NewsArticle {
   videos?: string[];
   date?: string;
   short_description?: string;
+  description?: string; // Add description field that we're using
   text?: string;
   publisher_href?: string;
   publisher_title?: string;
+  language: string;
+  location: string;
   created_at: string;
   updated_at?: string;
   is_active: boolean;
   views: number;
-  likes: number;
-  dislikes: number;
 }
 
 export interface NewsArticleList {
@@ -32,7 +33,7 @@ export interface NewsArticleList {
 }
 
 export interface UserAction {
-  action: 'like' | 'dislike' | 'view';
+  action: 'view';
   article_id: number;
 }
 
@@ -40,6 +41,18 @@ export interface ApiResponse<T = any> {
   data?: T;
   message?: string;
   error?: string;
+}
+
+export interface Language {
+  code: string;
+  name: string;
+  location: string;
+  flag: string;
+}
+
+export interface LanguageStats {
+  total_articles: number;
+  by_language: Record<string, number>;
 }
 
 export type SwipeDirection = 'left' | 'right' | 'up' | 'down'; 
