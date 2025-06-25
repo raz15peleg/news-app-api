@@ -37,17 +37,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick, clas
       onClick={onClick}
     >
       {/* Article Image */}
-      <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 overflow-hidden bg-gray-100">
+      <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 overflow-hidden bg-gray-100 flex items-center justify-center">
         <img
           src={article.top_image || defaultImage}
           alt={article.title}
-          className="w-full h-full object-cover object-center"
+          className="max-w-full max-h-full w-auto h-auto object-contain"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
             target.src = defaultImage;
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
         <div className="absolute top-4 right-4 bg-black bg-opacity-50 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
           <ExternalLink size={12} />
           Read More

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { NewsArticle, NewsArticleList, UserAction } from '../types/news';
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+const API_BASE_URL = '/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -55,7 +55,7 @@ export const newsApi = {
   },
 
   // Get random articles for swipe interface
-  async getRandomArticles(count: number = 10): Promise<{ articles: NewsArticle[] }> {
+  async getRandomArticles(count: number = 100): Promise<{ articles: NewsArticle[] }> {
     const response = await api.get('/articles/random', {
       params: { count }
     });
@@ -63,7 +63,7 @@ export const newsApi = {
   },
 
   // Get newest articles for swipe interface
-  async getNewestArticles(count: number = 10): Promise<{ articles: NewsArticle[] }> {
+  async getNewestArticles(count: number = 100): Promise<{ articles: NewsArticle[] }> {
     const response = await api.get('/articles/newest', {
       params: { count }
     });

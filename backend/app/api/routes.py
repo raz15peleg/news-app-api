@@ -68,11 +68,23 @@ async def get_articles(
         raise HTTPException(status_code=500, detail="Failed to fetch articles")
 
 @router.get("/articles/random")
-async def get_random_articles(count: int = Query(10, ge=1, le=50), db: Session = Depends(get_db)):
+async def get_random_articles(count: int = Query(100, ge=1, le=1000), db: Session = Depends(get_db)):
     """Get random articles for the swipe interface"""
     try:
         from sqlalchemy import func, and_
         from ..database.models import NewsArticle
+        
+        # Get total count of available articles
+        total_available = db.query(NewsArticle).filter(
+            and_(
+                NewsArticle.is_active == True,
+                NewsArticle.top_image.isnot(None),
+                NewsArticle.top_image != ''
+            )
+        ).count()
+        
+        # If count is higher than available, use all available
+        actual_count = min(count, total_available)
         
         articles = db.query(NewsArticle).filter(
             and_(
@@ -80,7 +92,7 @@ async def get_random_articles(count: int = Query(10, ge=1, le=50), db: Session =
                 NewsArticle.top_image.isnot(None),
                 NewsArticle.top_image != ''
             )
-        ).order_by(func.random()).limit(count).all()
+        ).order_by(func.random()).limit(actual_count).all()
         
         return {"articles": articles}
     except Exception as e:
@@ -88,10 +100,25 @@ async def get_random_articles(count: int = Query(10, ge=1, le=50), db: Session =
         raise HTTPException(status_code=500, detail="Failed to fetch random articles")
 
 @router.get("/articles/newest")
-async def get_newest_articles(count: int = Query(10, ge=1, le=50), db: Session = Depends(get_db)):
+async def get_newest_articles(count: int = Query(100, ge=1, le=1000), db: Session = Depends(get_db)):
     """Get newest articles for the swipe interface"""
     try:
-        articles = news_service.get_articles(db, skip=0, limit=count)
+        from sqlalchemy import and_
+        from ..database.models import NewsArticle
+        
+        # Get total count of available articles
+        total_available = db.query(NewsArticle).filter(
+            and_(
+                NewsArticle.is_active == True,
+                NewsArticle.top_image.isnot(None),
+                NewsArticle.top_image != ''
+            )
+        ).count()
+        
+        # If count is higher than available, use all available
+        actual_count = min(count, total_available)
+        
+        articles = news_service.get_articles(db, skip=0, limit=actual_count)
         return {"articles": articles}
     except Exception as e:
         logger.error(f"Error getting newest articles: {str(e)}")

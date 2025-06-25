@@ -10,7 +10,7 @@ export const useNews = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isRandomMode, setIsRandomMode] = useState(false);
 
-  const fetchNewestArticles = useCallback(async (count: number = 10) => {
+  const fetchNewestArticles = useCallback(async (count: number = 100) => {
     setLoading(true);
     setError(null);
     
@@ -29,7 +29,7 @@ export const useNews = () => {
     }
   }, []);
 
-  const fetchRandomArticles = useCallback(async (count: number = 10) => {
+  const fetchRandomArticles = useCallback(async (count: number = 100) => {
     setLoading(true);
     setError(null);
     
@@ -50,9 +50,9 @@ export const useNews = () => {
 
   const toggleRandomMode = useCallback(() => {
     if (isRandomMode) {
-      fetchNewestArticles(10);
+      fetchNewestArticles(100);
     } else {
-      fetchRandomArticles(10);
+      fetchRandomArticles(100);
     }
   }, [isRandomMode, fetchNewestArticles, fetchRandomArticles]);
 
@@ -69,12 +69,12 @@ export const useNews = () => {
     if (currentIndex < articles.length - 1) {
       setCurrentIndex(prev => prev + 1);
       
-      // Load more articles if running low
-      if (currentIndex >= articles.length - 3) {
+      // Load more articles if running low (keep this for future expansion)
+      if (currentIndex >= articles.length - 3 && articles.length < 50) {
         if (isRandomMode) {
-          await fetchRandomArticles(10);
+          await fetchRandomArticles(100);
         } else {
-          await fetchNewestArticles(10);
+          await fetchNewestArticles(100);
         }
       }
     }
