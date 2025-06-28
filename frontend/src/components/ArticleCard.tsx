@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NewsArticle } from '../types/news';
-import { MapPin, Globe, Calendar } from 'lucide-react';
+import { Globe, Clock } from 'lucide-react';
 
 interface ArticleCardProps {
   article: NewsArticle;
@@ -13,6 +13,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   onTap, 
   className = "" 
 }) => {
+  const [imageError, setImageError] = useState(false);
+  const hasValidImage = article.top_image && article.top_image.trim() !== '';
+  const [imageLoaded, setImageLoaded] = useState(!hasValidImage);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return '';
     try {
@@ -31,140 +35,152 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     }
   };
 
-  const getSimpleDate = (dateString?: string, language: string = 'en') => {
-    console.log('Date debug:', { dateString, language, type: typeof dateString });
-    
-    if (!dateString) {
-      return language === 'he' ? 'אין תאריך' : 'No date';
-    }
-    
+  const formatRelativeTime = (dateString?: string) => {
+    if (!dateString) return 'Time unknown';
     try {
       const date = new Date(dateString);
-      console.log('Parsed date:', date, 'Valid:', !isNaN(date.getTime()));
+      if (isNaN(date.getTime())) return 'Time unknown';
       
-      // Check if date is valid
-      if (isNaN(date.getTime())) {
-        return language === 'he' ? 'תאריך לא תקין' : 'Invalid date';
-      }
-
-      // Simple format that should work for both languages
-      const options: Intl.DateTimeFormatOptions = {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      };
-
-      if (language === 'he') {
-        return date.toLocaleDateString('he-IL', options);
-      } else {
-        return date.toLocaleDateString('en-US', options);
-      }
-    } catch (error) {
-      console.error('Date formatting error:', error, 'for date:', dateString);
-      return language === 'he' ? 'שגיאה בתאריך' : 'Date error';
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+      
+      if (diffInMinutes < 1) return 'Just now';
+      if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+      
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      if (diffInHours < 24) return `${diffInHours}h ago`;
+      
+      const diffInDays = Math.floor(diffInHours / 24);
+      if (diffInDays < 7) return `${diffInDays}d ago`;
+      
+      return formatDate(dateString);
+    } catch {
+      return 'Time unknown';
     }
   };
 
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + '...';
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onTap(article);
   };
 
-  const defaultImage = 'https://via.placeholder.com/400x200/e2e8f0/64748b?text=No+Image';
-
-  // Check if content is Hebrew (RTL)
-  const isHebrew = article.language === 'he';
-  const textDirection = isHebrew ? 'rtl' : 'ltr';
-  const textAlign = isHebrew ? 'text-right' : 'text-left';
-  const flexAlign = isHebrew ? 'justify-end' : 'justify-start';
-
-  const getLocationFlag = (location: string) => {
-    switch (location.toLowerCase()) {
-      case 'us':
-        return '🇺🇸';
-      case 'il':
-        return '🇮🇱';
-      default:
-        return '🌐';
-    }
+  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.error('Image failed to load:', e.currentTarget.src);
+    setImageError(true);
+    setImageLoaded(true);
   };
 
-  const getLanguageFlag = (language: string) => {
-    switch (language.toLowerCase()) {
-      case 'he':
-        return '🇮🇱';
-      case 'en':
-        return '🇬🇧';
-      default:
-        return '🌐';
-    }
+  const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.log('Image loaded successfully:', e.currentTarget.src);
+    setImageLoaded(true);
+    setImageError(false);
   };
+
+  const publishedDate = article.date || article.created_at;
+  const relativeTime = formatRelativeTime(publishedDate);
+  const fullDate = formatDate(publishedDate);
+
+  // Determine which image to show
+  const fallbackImage = 'https://via.placeholder.com/800x400/e5e7eb/9ca3af?text=News+Article';
+  const imageUrl = (!hasValidImage || imageError) ? fallbackImage : article.top_image;
+  
+  // For fallback images, we want them to be visible immediately
+  const shouldShowImage = imageLoaded || (!hasValidImage || imageError);
 
   return (
     <div 
-      className={`
-        relative bg-white rounded-2xl shadow-lg cursor-pointer
-        transform transition-all duration-300 hover:scale-105 hover:shadow-xl
-        flex flex-col h-full overflow-hidden
-        ${className}
-      `}
-      onClick={(e) => {
-        e.stopPropagation();
-        onTap(article);
-      }}
-      dir={textDirection}
+      className={`relative bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl group ${className}`}
+      onClick={handleClick}
     >
-      {/* Entire card content is now scrollable */}
-      <div className="overflow-y-auto h-full flex flex-col">
-        {/* Article Image - flexible height */}
-        <div className="relative flex-shrink-0 min-h-[200px] max-h-[60%] overflow-hidden bg-gray-100 flex items-center justify-center">
-          <img
-            src={article.top_image || defaultImage}
-            alt={article.title}
-            className="max-w-full max-h-full w-auto h-auto object-contain"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = defaultImage;
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none"></div>
-        </div>
-
-        {/* Article Content - takes remaining space */}
-        <div className={`p-4 sm:p-6 flex flex-col flex-grow ${textAlign} min-h-0`} dir={textDirection}>
-          {/* Main Header - Short Description */}
-          <h2 className={`text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3 leading-tight ${textAlign}`}>
-            {article.short_description || article.title || 'No title available'}
-          </h2>
-
-          {/* Article Text - no separate scroll container */}
-          <div className={`flex-grow mb-3 sm:mb-4 ${textAlign}`}>
-            <p className={`text-sm sm:text-base text-gray-700 leading-relaxed ${textAlign}`}>
-              {article.text || article.short_description || 'No description available'}
-            </p>
+      {/* Article Image */}
+      <div className="relative h-48 sm:h-56 md:h-64 lg:h-72 xl:h-80 overflow-hidden bg-gray-100 dark:bg-gray-700">
+        {!shouldShowImage && hasValidImage && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-600">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
+        )}
+        
+        <img
+          src={imageUrl}
+          alt={article.title || 'News article'}
+          className={`w-full h-full object-cover transition-all duration-300 group-hover:scale-105 ${
+            shouldShowImage ? 'opacity-100' : 'opacity-0'
+          }`}
+          loading="lazy"
+          onError={handleImageError}
+          onLoad={handleImageLoad}
+        />
+        
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        
+        {/* Image error fallback overlay */}
+        {imageError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-600">
+            <div className="text-center text-gray-500 dark:text-gray-400">
+              <Globe className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-sm">Image unavailable</p>
+            </div>
+          </div>
+        )}
+      </div>
 
-          {/* Date and location info - always visible at bottom */}
-          <div className={`flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm ${flexAlign} border-t border-gray-200 pt-3 mt-auto flex-shrink-0 bg-gray-50 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-2`}>
-            <div className="flex items-center gap-1 bg-blue-100 px-3 py-1.5 rounded-full shadow-sm">
-              <Calendar size={14} className="text-blue-600" />
-              <span className="font-semibold text-blue-700 whitespace-nowrap text-sm">
-                {article.date ? getSimpleDate(article.date, article.language) : (article.language === 'he' ? 'אין תאריך' : 'No date')}
+      {/* Article Content */}
+      <div className="p-4 sm:p-5 md:p-6 pb-16">
+        {/* Headline */}
+        <h2 className="article-headline font-display font-bold text-gray-900 dark:text-gray-100 mb-3 leading-tight line-clamp-3 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+          {article.title || 'No title available'}
+        </h2>
+
+        {/* Short Description */}
+        {article.short_description && (
+          <p className="article-body text-gray-700 dark:text-gray-300 mb-4 line-clamp-3 leading-relaxed">
+            {article.short_description}
+          </p>
+        )}
+
+        {/* Publisher Info */}
+        {article.publisher_title && (
+          <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3">
+            <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="font-medium truncate">{article.publisher_title}</span>
+          </div>
+        )}
+
+        {/* Language Badge */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {article.language && (
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                article.language === 'he' 
+                  ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' 
+                  : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+              }`}>
+                {article.language === 'he' ? '🇮🇱 עברית' : '🇺🇸 English'}
               </span>
-            </div>
-            <div className="flex items-center gap-1 bg-green-100 px-3 py-1.5 rounded-full shadow-sm">
-              <span className="text-lg emoji" role="img" aria-label="location flag">{getLocationFlag(article.location)}</span>
-              <span className="font-semibold text-green-700 whitespace-nowrap text-sm">{article.location?.toUpperCase()}</span>
-            </div>
-            <div className="flex items-center gap-1 bg-purple-100 px-3 py-1.5 rounded-full shadow-sm">
-              <span className="text-lg emoji" role="img" aria-label="language flag">{getLanguageFlag(article.language)}</span>
-              <span className="font-semibold text-purple-700 whitespace-nowrap text-sm">{article.language?.toUpperCase()}</span>
-            </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Floating Timestamp Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-sm text-white px-4 py-2 z-10">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Clock className="w-4 h-4 flex-shrink-0 opacity-80" />
+            <span className="text-sm font-medium">
+              {relativeTime}
+            </span>
+          </div>
+          {fullDate && (
+            <span className="text-xs opacity-75 hidden sm:block" title={fullDate}>
+              {fullDate}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Hover Effect Overlay */}
+      <div className="absolute inset-0 bg-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
     </div>
   );
 }; 

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
+from datetime import datetime, timedelta
 import logging
 
 from ..database.connection import get_db
@@ -26,10 +27,13 @@ async def get_articles(
     language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
     db: Session = Depends(get_db)
 ):
-    """Get paginated list of news articles"""
+    """Get paginated list of news articles from the last 24 hours"""
     try:
+        # Calculate 24 hours ago timestamp
+        twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        
         if random_order:
-            # Get random articles
+            # Get random articles from last 24 hours
             from sqlalchemy import func, and_
             from ..database.models import NewsArticle
             
@@ -37,7 +41,10 @@ async def get_articles(
                 and_(
                     NewsArticle.is_active == True,
                     NewsArticle.top_image.isnot(None),
-                    NewsArticle.top_image != ''
+                    NewsArticle.top_image != '',
+                    # Filter articles from the last 24 hours
+                    (NewsArticle.date >= twenty_four_hours_ago) |
+                    (NewsArticle.created_at >= twenty_four_hours_ago)
                 )
             )
             
@@ -47,10 +54,10 @@ async def get_articles(
                 
             articles = query.order_by(func.random()).offset(skip).limit(limit).all()
         else:
-            # Get articles ordered by newest first
+            # Get articles ordered by newest first (already filtered by 24 hours in service)
             articles = news_service.get_articles(db, skip=skip, limit=limit, language=language)
         
-        # Get total count for pagination
+        # Get total count for pagination (filtered by 24 hours)
         from ..database.models import NewsArticle
         from sqlalchemy import and_
         
@@ -58,7 +65,10 @@ async def get_articles(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
-                NewsArticle.top_image != ''
+                NewsArticle.top_image != '',
+                # Filter articles from the last 24 hours
+                (NewsArticle.date >= twenty_four_hours_ago) |
+                (NewsArticle.created_at >= twenty_four_hours_ago)
             )
         )
         
@@ -87,17 +97,23 @@ async def get_random_articles(
     language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
     db: Session = Depends(get_db)
 ):
-    """Get random articles for the swipe interface"""
+    """Get random articles from the last 24 hours for the swipe interface"""
     try:
         from sqlalchemy import func, and_
         from ..database.models import NewsArticle
         
-        # Get total count of available articles
+        # Calculate 24 hours ago timestamp
+        twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        
+        # Get total count of available articles from last 24 hours
         count_query = db.query(NewsArticle).filter(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
-                NewsArticle.top_image != ''
+                NewsArticle.top_image != '',
+                # Filter articles from the last 24 hours
+                (NewsArticle.date >= twenty_four_hours_ago) |
+                (NewsArticle.created_at >= twenty_four_hours_ago)
             )
         )
         
@@ -114,7 +130,10 @@ async def get_random_articles(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
-                NewsArticle.top_image != ''
+                NewsArticle.top_image != '',
+                # Filter articles from the last 24 hours
+                (NewsArticle.date >= twenty_four_hours_ago) |
+                (NewsArticle.created_at >= twenty_four_hours_ago)
             )
         )
         
@@ -135,17 +154,23 @@ async def get_newest_articles(
     language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
     db: Session = Depends(get_db)
 ):
-    """Get newest articles for the swipe interface"""
+    """Get newest articles from the last 24 hours for the swipe interface"""
     try:
         from sqlalchemy import and_
         from ..database.models import NewsArticle
         
-        # Get total count of available articles
+        # Calculate 24 hours ago timestamp
+        twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        
+        # Get total count of available articles from last 24 hours
         count_query = db.query(NewsArticle).filter(
             and_(
                 NewsArticle.is_active == True,
                 NewsArticle.top_image.isnot(None),
-                NewsArticle.top_image != ''
+                NewsArticle.top_image != '',
+                # Filter articles from the last 24 hours
+                (NewsArticle.date >= twenty_four_hours_ago) |
+                (NewsArticle.created_at >= twenty_four_hours_ago)
             )
         )
         
@@ -158,6 +183,7 @@ async def get_newest_articles(
         # If count is higher than available, use all available
         actual_count = min(count, total_available)
         
+        # Use the news service which already has the 24-hour filter
         articles = news_service.get_articles(db, skip=0, limit=actual_count, language=language)
         return {"articles": articles}
     except Exception as e:

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 class NewsService:
     def __init__(self):
-        self.rapidapi_key = "8028f92d37mshaee587861c286bfp1f370djsn6a351cc6de16"
+        self.rapidapi_key = "aa8ed895c2msha546930acfab01ap109070jsn317e255ca2a0"
         self.rapidapi_host = "newsnow.p.rapidapi.com"
         self.base_url_top_news = "https://newsnow.p.rapidapi.com/newsv2_top_news"
         self.base_url_search = "https://newsnow.p.rapidapi.com/newsv2"
@@ -174,7 +174,7 @@ class NewsService:
     
     def get_articles(self, db: Session, skip: int = 0, limit: int = 20, 
                     only_active: bool = True, language: str = None) -> List[NewsArticle]:
-        """Get articles from database ordered by publication date (newest first)"""
+        """Get articles from database from the last 24 hours, ordered by publication date (newest first)"""
         query = db.query(NewsArticle)
         
         if only_active:
@@ -189,6 +189,18 @@ class NewsService:
             and_(
                 NewsArticle.top_image.isnot(None),
                 NewsArticle.top_image != ''
+            )
+        )
+        
+        # Filter articles from the last 24 hours
+        # Use both article date and created_at to ensure we catch all recent articles
+        twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        query = query.filter(
+            and_(
+                # Either the article date is within 24 hours OR created_at is within 24 hours
+                # This handles cases where article date might be missing or inaccurate
+                (NewsArticle.date >= twenty_four_hours_ago) |
+                (NewsArticle.created_at >= twenty_four_hours_ago)
             )
         )
         
