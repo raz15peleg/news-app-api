@@ -220,7 +220,7 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
   return (
     <div className="w-full h-screen flex flex-col">
       <div className="flex-1 relative overflow-hidden px-2 sm:px-4 py-2 sm:py-4">
-        <div className="relative w-full h-full max-w-4xl mx-auto card-container">
+        <div className="relative w-full h-full max-w-2xl mx-auto card-container">
           {upcomingArticles.map((article, index) => (
             <div
               key={article.id}
@@ -270,7 +270,7 @@ export const SwipeableCards: React.FC<SwipeableCardsProps> = ({
       </div>
 
       <div className="flex-shrink-0 px-4 py-2 bg-white border-t border-gray-100">
-        <div className="flex items-center justify-between max-w-4xl mx-auto">
+        <div className="flex items-center justify-between max-w-2xl mx-auto">
           <div className="text-sm font-medium text-gray-700">
             {currentIndex + 1} of {articles.length}
           </div>

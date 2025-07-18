@@ -270,7 +270,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       onClick={handleClick}
     >
       {/* Article Image - Improved loading with progressive enhancement */}
-      <div className="relative h-40 sm:h-44 md:h-48 lg:h-52 xl:h-56 flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-t-lg sm:rounded-t-xl">
+      <div className="relative h-32 sm:h-36 md:h-40 lg:h-44 xl:h-48 flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-700 rounded-t-lg sm:rounded-t-xl">
         {/* Loading state - faster feedback */}
         {!shouldShowImage && hasValidImage && !imageError && !isRetrying && (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 z-10">
@@ -336,7 +336,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       </div>
 
       {/* Article Content - Shorter, more compact container */}
-      <div className={`flex-1 flex flex-col p-3 sm:p-4 md:p-5 bg-white/95 backdrop-blur-sm ${isTextExpanded ? 'pb-4 sm:pb-6 overflow-y-auto' : 'pb-12 sm:pb-14'} min-h-0 max-h-64 sm:max-h-72 md:max-h-80`}>
+      <div className={`flex-1 flex flex-col p-3 sm:p-4 md:p-5 bg-white/95 backdrop-blur-sm ${isTextExpanded ? 'pb-4 sm:pb-6 overflow-y-auto' : 'pb-12 sm:pb-14'} min-h-0 max-h-48 sm:max-h-56 md:max-h-64`}>
         {/* Headline - Responsive typography */}
         <h2 className="article-headline font-display font-bold text-black mb-2 sm:mb-3 leading-tight text-lg sm:text-xl md:text-2xl lg:text-3xl line-clamp-3 hover:text-blue-600 transition-colors flex-shrink-0">
           {article.title || 'No title available'}
@@ -351,7 +351,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
         {/* Article Text Content - Scrollable area with reduced height */}
         {hasArticleText && (
-          <div className="mb-3 sm:mb-4 bg-white/95 backdrop-blur-sm flex-1 min-h-0 max-h-32 sm:max-h-40" ref={contentRef}>
+          <div className="mb-3 sm:mb-4 bg-white/95 backdrop-blur-sm flex-1 min-h-0 max-h-24 sm:max-h-32" ref={contentRef}>
             <div className={`article-text bg-white/95 backdrop-blur-sm text-sm sm:text-base ${article.language === 'he' ? 'text-right' : 'text-left'} ${isTextExpanded ? 'h-auto' : ''}`}>
               {isTextExpanded ? (
                 // Show full text with proper paragraph formatting

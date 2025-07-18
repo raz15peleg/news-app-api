@@ -127,14 +127,14 @@ print_success "Backend server started (PID: $BACKEND_PID)"
 # Move to frontend directory
 cd ../frontend
 
-# Load nvm and use Node.js 18
+# Load nvm and use Node.js 20
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use 18 > /dev/null 2>&1
+nvm use 20 > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-    print_error "Node.js 18 not found. Installing it now..."
-    nvm install 18
-    nvm use 18
+    print_error "Node.js 20 not found. Installing it now..."
+    nvm install 20
+    nvm use 20
 fi
 
 print_status "Using Node.js version: $(node --version)"
@@ -142,7 +142,7 @@ print_status "Using Node.js version: $(node --version)"
 # Check if node_modules exists and package.json is newer
 if [ ! -d "node_modules" ] || [ package.json -nt node_modules ]; then
     print_status "Installing/updating Node.js dependencies..."
-    npm install
+    pnpm install
     if [ $? -ne 0 ]; then
         print_error "Failed to install Node.js dependencies"
         cleanup
@@ -156,7 +156,7 @@ print_status "Starting frontend development server..."
 print_status "Frontend will be available at http://localhost:3000"
 
 # Start frontend in background initially to get PID, then bring to foreground
-npm run dev > ../frontend.log 2>&1 &
+pnpm run dev > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 # Wait a bit for frontend to start

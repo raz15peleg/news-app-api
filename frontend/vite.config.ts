@@ -27,7 +27,7 @@ export default defineConfig(({ command, mode }) => {
       // Only use proxy in development when VITE_API_URL is not set
       ...(command === 'serve' && !env.VITE_API_URL && {
         proxy: {
-          '/api': {
+          '/api/v1': {
             target: 'http://127.0.0.1:8000',
             changeOrigin: true,
             secure: false,
