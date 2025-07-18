@@ -39,7 +39,8 @@ app = FastAPI(
     title="News App API",
     description="A Tinder-like news app API with automatic news fetching",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    root_path="/news-app/backend/v1.0"
 )
 
 # Add CORS middleware
