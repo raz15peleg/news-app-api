@@ -150,8 +150,6 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         
         if (contentElement && cardElement) {
           // Scroll within the card container to show the expanded content
-          const contentRect = contentElement.getBoundingClientRect();
-          const cardRect = cardElement.getBoundingClientRect();
           
           // Calculate the scroll position to show the expanded content
           const scrollTop = contentElement.offsetTop - cardElement.offsetTop;

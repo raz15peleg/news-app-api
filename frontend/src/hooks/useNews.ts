@@ -60,7 +60,7 @@ export const useNews = () => {
       if (response.articles.length > 0) {
         toast.success(`Found ${response.articles.length} articles for "${query}" in ${langName}`);
       } else {
-        toast.info(`No articles found for "${query}" in ${langName}`);
+        toast(`No articles found for "${query}" in ${langName}`);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to search articles';
