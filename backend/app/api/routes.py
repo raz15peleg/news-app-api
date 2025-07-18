@@ -419,6 +419,7 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "message": "News API is running"}
 
+
 # Include all routes
 def get_router():
     return router 
