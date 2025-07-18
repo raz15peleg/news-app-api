@@ -36,7 +36,7 @@ export default defineConfig(({ command, mode }) => {
       include: ['react', 'react-dom']
     },
     build: {
-      target: 'es2015',
+      target: 'es2020',
       rollupOptions: {
         output: {
           manualChunks: undefined,

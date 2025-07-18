@@ -176,3 +176,5 @@ config.secret.json
 *.pyc
 
 .env
+*/node_modules
+frontend/node_modules
