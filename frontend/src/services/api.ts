@@ -2,12 +2,12 @@ import axios from 'axios';
 import { NewsArticle, NewsArticleList } from '../types/news';
 
 // Use environment variable for API URL, fallback to relative path for development
-const API_BASE_URL = (import.meta.env as any).VITE_API_URL || '/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 console.log('API Configuration:', {
-  VITE_API_URL: (import.meta.env as any).VITE_API_URL,
+  VITE_API_URL: import.meta.env.VITE_API_URL,
   API_BASE_URL: API_BASE_URL,
-  NODE_ENV: (import.meta.env as any).MODE
+  NODE_ENV: import.meta.env.MODE
 });
 
 const api = axios.create({

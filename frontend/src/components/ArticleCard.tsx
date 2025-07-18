@@ -30,7 +30,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   const [imageLoadStarted, setImageLoadStarted] = useState(false);
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
-  const imageTimeoutRef = useRef<NodeJS.Timeout>();
+  const imageTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const imageRef = useRef<HTMLImageElement>(null);
 
   // Reset image loading state when article changes
