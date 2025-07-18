@@ -238,12 +238,45 @@ gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker
 ```
 
 ### Frontend Deployment
+
+#### Environment Configuration
+For production deployment, you need to configure the API URL. Create a `.env` file in the frontend directory:
+
+```env
+# Set this to your backend API URL
+VITE_API_URL=https://your-backend-domain.com/api/v1
+
+# For development (optional)
+VITE_DEBUG=true
+```
+
+#### Build and Deploy
 ```bash
 # Build for production
 npm run build
 
 # Deploy the dist/ folder to your hosting service
 ```
+
+#### Platform-Specific Deployment
+
+**For Choreo:**
+1. Set the environment variable `VITE_API_URL` to your backend API URL
+2. Build the project: `npm run build`
+3. Deploy the `dist/` folder
+
+**For Vercel:**
+1. Add environment variable in Vercel dashboard: `VITE_API_URL=https://your-backend-url.com/api/v1`
+2. Deploy using Vercel CLI or GitHub integration
+
+**For Netlify:**
+1. Add environment variable in Netlify dashboard: `VITE_API_URL=https://your-backend-url.com/api/v1`
+2. Deploy using Netlify CLI or drag-and-drop
+
+#### Important Notes
+- The frontend will use the proxy configuration (`/api/v1`) only in development when `VITE_API_URL` is not set
+- In production, always set `VITE_API_URL` to point to your actual backend API
+- Make sure your backend API is accessible from your frontend's domain (CORS configuration)
 
 ## Contributing
 

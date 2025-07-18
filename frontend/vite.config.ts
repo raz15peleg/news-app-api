@@ -5,7 +5,12 @@ import react from '@vitejs/plugin-react'
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
 
-  console.log(env.VITE_DEBUG)
+  console.log('Environment:', {
+    VITE_DEBUG: env.VITE_DEBUG,
+    VITE_API_URL: env.VITE_API_URL,
+    mode: mode,
+    command: command
+  })
 
   return {
     plugins: [react()],
@@ -19,7 +24,8 @@ export default defineConfig(({ command, mode }) => {
         '.ngrok.app',
         'all'
       ],
-      ...(env.VITE_DEBUG === "true" && {
+      // Only use proxy in development when VITE_API_URL is not set
+      ...(command === 'serve' && !env.VITE_API_URL && {
         proxy: {
           '/api': {
             target: 'http://127.0.0.1:8000',

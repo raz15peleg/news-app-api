@@ -143,6 +143,21 @@ export const useNews = () => {
     }
   }, [supportedLanguages, fetchNewestArticles]);
 
+  // Debug: Test API connection on mount
+  useEffect(() => {
+    const testApiConnection = async () => {
+      try {
+        console.log('Testing API connection...');
+        const health = await newsApi.healthCheck();
+        console.log('API health check successful:', health);
+      } catch (err) {
+        console.error('API health check failed:', err);
+      }
+    };
+    
+    testApiConnection();
+  }, []);
+
   return {
     articles,
     loading,
