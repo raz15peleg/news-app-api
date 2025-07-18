@@ -2,12 +2,12 @@ import axios from 'axios';
 import { NewsArticle, NewsArticleList } from '../types/news';
 
 // Use environment variable for API URL, fallback to relative path for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE_URL = (import.meta.env as any).VITE_API_URL || '/api/v1';
 
 console.log('API Configuration:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
+  VITE_API_URL: (import.meta.env as any).VITE_API_URL,
   API_BASE_URL: API_BASE_URL,
-  NODE_ENV: import.meta.env.MODE
+  NODE_ENV: (import.meta.env as any).MODE
 });
 
 const api = axios.create({
@@ -22,7 +22,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log(`Making ${config.method?.toUpperCase()} request to:`, config.url);
-    console.log('Full request URL:', config.baseURL + config.url);
+    console.log('Full request URL:', (config.baseURL || '') + (config.url || ''));
     console.log('Request params:', config.params);
     return config;
   },
