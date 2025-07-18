@@ -28,8 +28,17 @@ class NewsService:
         """Get list of supported languages"""
         return self.supported_languages
         
-    def fetch_news_from_api(self, location: str = "us", language: str = "en", page: int = 1) -> Optional[dict]:
-        """Fetch news from RapidAPI for the past 12 hours"""
+    def fetch_news_from_api(self, location: str = "us", language: str = "en", page: int = 1, hours: int = 12) -> Optional[dict]:
+        """
+        Fetch news from RapidAPI for the past 'hours' hours.
+        Args:
+            location (str): Location code (e.g., 'us', 'il').
+            language (str): Language code (e.g., 'en', 'he').
+            page (int): Page number for pagination.
+            hours (int): How many hours back to fetch news (default: 12).
+        Returns:
+            dict or None: API response JSON or None on failure.
+        """
         try:
             headers = {
                 'Content-Type': 'application/json',
@@ -40,8 +49,8 @@ class NewsService:
             # Get current time for the API request
             now = datetime.now()
             
-            # Fetch news from the past 12 hours for both languages
-            from_date = (now - timedelta(hours=12)).strftime("%d/%m/%Y")
+            # Fetch news from the past 'hours' hours for both languages
+            from_date = (now - timedelta(hours=hours)).strftime("%d/%m/%Y")
             to_date = now.strftime("%d/%m/%Y")
             
             # Use different endpoint and payload structure for Hebrew
@@ -69,7 +78,7 @@ class NewsService:
                     "to_date": to_date
                 }
             
-            logger.info(f"Fetching news for language: {language}, location: {location}, page: {page} (past 12 hours: {from_date} to {to_date})")
+            logger.info(f"Fetching news for language: {language}, location: {location}, page: {page} (past {hours} hours: {from_date} to {to_date})")
             logger.debug(f"Using URL: {url}")
             logger.debug(f"Payload: {payload}")
             
@@ -236,10 +245,18 @@ class NewsService:
             db.rollback()
             return False
     
-    def fetch_and_save_latest_news(self, db: Session, language: str = None) -> int:
-        """Fetch latest news from the past 12 hours and save to database - used by cron job"""
+    def fetch_and_save_latest_news(self, db: Session, language: str = None, hours: int = 12) -> int:
+        """
+        Fetch latest news from the past 'hours' hours and save to database.
+        Args:
+            db (Session): SQLAlchemy DB session.
+            language (str): Language code to fetch (or all if None).
+            hours (int): How many hours back to fetch news (default: 12).
+        Returns:
+            int: Number of articles saved.
+        """
         try:
-            logger.info(f"Starting 12-hour news fetch job for language: {language or 'all languages'}")
+            logger.info(f"Starting {hours}-hour news fetch job for language: {language or 'all languages'}")
             
             # Determine which languages to fetch
             languages_to_fetch = []
@@ -256,13 +273,13 @@ class NewsService:
             
             total_saved = 0
             
-            # Fetch news for each language from the past 12 hours
+            # Fetch news for each language from the past 'hours' hours
             for lang_code, location in languages_to_fetch:
-                logger.info(f"Fetching 12-hour news cycle for {lang_code} from {location}")
+                logger.info(f"Fetching {hours}-hour news cycle for {lang_code} from {location}")
                 
-                # Fetch news from multiple pages to get more articles from the 12-hour window
-                for page in range(1, 5):  # Fetch first 5 pages to get more articles from 12-hour window
-                    api_response = self.fetch_news_from_api(location=location, language=lang_code, page=page)
+                # Fetch news from multiple pages to get more articles from the 'hours' window
+                for page in range(1, 5):  # Fetch first 5 pages to get more articles from 'hours' window
+                    api_response = self.fetch_news_from_api(location=location, language=lang_code, page=page, hours=hours)
                     if api_response:
                         saved = self.parse_and_save_articles(db, api_response, language=lang_code, location=location)
                         total_saved += saved
@@ -272,7 +289,7 @@ class NewsService:
                             logger.info(f"No new articles found on page {page} for {lang_code}, stopping pagination")
                             break
             
-            logger.info(f"12-hour news fetch job completed. Total articles saved: {total_saved}")
+            logger.info(f"{hours}-hour news fetch job completed. Total articles saved: {total_saved}")
             return total_saved
             
         except Exception as e:

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Newspaper, RefreshCw, Settings } from 'lucide-react';
 import { Language } from '../types/news';
+import { SearchBar } from './SearchBar';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,9 @@ interface LayoutProps {
   // Stats props
   currentIndex?: number;
   totalArticles?: number;
+  // Search props
+  onSearch?: (query: string) => void;
+  onSearchClear?: () => void;
 }
 
 export const Layout: React.FC<LayoutProps> = ({ 
@@ -23,10 +27,12 @@ export const Layout: React.FC<LayoutProps> = ({
   supportedLanguages = [],
   onLanguageChange,
   currentIndex = 0,
-  totalArticles = 0
+  totalArticles = 0,
+  onSearch,
+  onSearchClear
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,10 +40,10 @@ export const Layout: React.FC<LayoutProps> = ({
             {/* Logo */}
             <div className="flex items-center">
               <Newspaper className="h-8 w-8 text-blue-600 mr-3" />
-              <h1 className="text-xl font-bold text-gray-900">NewsSwipe</h1>
+              <h1 className="text-xl font-bold text-black">NewsSwipe</h1>
             </div>
 
-            {/* Center - Language Selector and Stats */}
+            {/* Center - Language Selector, Search, and Stats */}
             <div className="flex items-center gap-6">
               {/* Language Selector */}
               {supportedLanguages.length > 0 && onLanguageChange && (
@@ -58,6 +64,17 @@ export const Layout: React.FC<LayoutProps> = ({
                       </option>
                     ))}
                   </select>
+                </div>
+              )}
+
+              {/* Search Bar */}
+              {onSearch && onSearchClear && (
+                <div className="w-80">
+                  <SearchBar
+                    onSearch={onSearch}
+                    onClear={onSearchClear}
+                    placeholder={selectedLanguage === 'he' ? 'חפש כתבות...' : 'Search articles...'}
+                  />
                 </div>
               )}
 

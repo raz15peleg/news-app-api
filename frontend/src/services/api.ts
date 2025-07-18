@@ -76,6 +76,16 @@ export const newsApi = {
     return response.data;
   },
 
+  // Search articles by query string
+  async searchArticles(query: string, skip: number = 0, limit: number = 20, language?: string): Promise<NewsArticleList> {
+    const params: any = { query, skip, limit };
+    if (language) {
+      params.language = language;
+    }
+    const response = await api.get('/articles/search', { params });
+    return response.data;
+  },
+
   // Get specific article by ID
   async getArticle(id: number): Promise<NewsArticle> {
     const response = await api.get(`/articles/${id}`);

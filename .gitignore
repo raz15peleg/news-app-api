@@ -174,3 +174,5 @@ api_keys.txt
 secrets.txt
 config.secret.json 
 *.pyc
+
+.env

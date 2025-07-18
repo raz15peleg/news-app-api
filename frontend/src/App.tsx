@@ -19,6 +19,7 @@ function NewsApp() {
     selectedLanguage,
     supportedLanguages,
     fetchNewestArticles,
+    searchArticles,
     changeLanguage,
     goToNext,
     goToPrevious,
@@ -66,6 +67,14 @@ function NewsApp() {
     fetchNewestArticles(15);
   };
 
+  const handleSearch = (query: string) => {
+    searchArticles(query);
+  };
+
+  const handleSearchClear = () => {
+    fetchNewestArticles(15);
+  };
+
   // Keyboard navigation handler
   const handleKeyPress = useCallback((event: KeyboardEvent) => {
     // Prevent keyboard navigation when user is typing in an input field
@@ -109,14 +118,16 @@ function NewsApp() {
         supportedLanguages={supportedLanguages}
         onLanguageChange={handleLanguageChange}
         onRefresh={handleRefresh}
+        onSearch={handleSearch}
+        onSearchClear={handleSearchClear}
         loading={loading}
         currentIndex={currentIndex}
         totalArticles={articles.length}
       >
-        <div className="flex flex-col items-center justify-center h-96 text-red-500">
+        <div className="flex flex-col items-center justify-center h-96 text-red-600">
           <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold mb-2">Something went wrong</h2>
-          <p className="text-center mb-4">{error}</p>
+          <h2 className="text-xl font-semibold mb-2 text-black">Something went wrong</h2>
+          <p className="text-center mb-4 text-gray-800">{error}</p>
           <button
             onClick={handleRefresh}
             className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -132,6 +143,8 @@ function NewsApp() {
   return (
     <Layout 
       onRefresh={handleRefresh} 
+      onSearch={handleSearch}
+      onSearchClear={handleSearchClear}
       loading={loading}
       selectedLanguage={selectedLanguage}
       supportedLanguages={supportedLanguages}

@@ -46,6 +46,31 @@ export const useNews = () => {
     }
   }, [selectedLanguage, supportedLanguages]);
 
+  const searchArticles = useCallback(async (query: string, language?: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const langToUse = language || selectedLanguage;
+      const response = await newsApi.searchArticles(query, 0, 100, langToUse);
+      setArticles(response.articles);
+      setCurrentIndex(0);
+      
+      const langName = supportedLanguages.find(l => l.code === langToUse)?.name || langToUse;
+      if (response.articles.length > 0) {
+        toast.success(`Found ${response.articles.length} articles for "${query}" in ${langName}`);
+      } else {
+        toast.info(`No articles found for "${query}" in ${langName}`);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to search articles';
+      setError(errorMessage);
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedLanguage, supportedLanguages]);
+
   const recordAction = useCallback(async (articleId: number, action: 'view') => {
     try {
       await newsApi.recordAction(articleId, action);
@@ -126,6 +151,7 @@ export const useNews = () => {
     selectedLanguage,
     supportedLanguages,
     fetchNewestArticles,
+    searchArticles,
     fetchSupportedLanguages,
     changeLanguage,
     goToNext,

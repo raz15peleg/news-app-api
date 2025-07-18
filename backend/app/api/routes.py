@@ -190,6 +190,70 @@ async def get_newest_articles(
         logger.error(f"Error getting newest articles: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch newest articles")
 
+@router.get("/articles/search")
+async def search_articles(
+    query: str = Query(..., description="Search query string"),
+    skip: int = Query(0, ge=0, description="Number of articles to skip"),
+    limit: int = Query(20, ge=1, le=100, description="Number of articles to return"),
+    language: str = Query(None, description="Language code to filter articles (en, he, etc.)"),
+    db: Session = Depends(get_db)
+):
+    """Search articles by title, description, or text content"""
+    try:
+        from sqlalchemy import func, and_, or_, desc, case
+        from ..database.models import NewsArticle
+        
+        # Calculate 24 hours ago timestamp
+        twenty_four_hours_ago = datetime.now() - timedelta(hours=24)
+        
+        # Build search query
+        search_query = db.query(NewsArticle).filter(
+            and_(
+                NewsArticle.is_active == True,
+                NewsArticle.top_image.isnot(None),
+                NewsArticle.top_image != '',
+                # Filter articles from the last 24 hours
+                (NewsArticle.date >= twenty_four_hours_ago) |
+                (NewsArticle.created_at >= twenty_four_hours_ago),
+                # Search in title, short_description, and text
+                or_(
+                    NewsArticle.title.ilike(f'%{query}%'),
+                    NewsArticle.short_description.ilike(f'%{query}%'),
+                    NewsArticle.text.ilike(f'%{query}%')
+                )
+            )
+        )
+        
+        # Filter by language if specified
+        if language:
+            search_query = search_query.filter(NewsArticle.language == language)
+        
+        # Get total count for pagination
+        total = search_query.count()
+        
+        # Get paginated results ordered by relevance (title matches first, then description, then text)
+        articles = search_query.order_by(
+            case(
+                (NewsArticle.title.ilike(f'%{query}%'), 0),
+                else_=1
+            ),
+            NewsArticle.date.desc(),
+            NewsArticle.created_at.desc()
+        ).offset(skip).limit(limit).all()
+        
+        has_next = skip + limit < total
+        
+        return NewsArticleList(
+            articles=articles,
+            total=total,
+            page=skip // limit + 1,
+            size=len(articles),
+            has_next=has_next
+        )
+    except Exception as e:
+        logger.error(f"Error searching articles: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to search articles")
+
 @router.get("/articles/{article_id}", response_model=NewsArticleResponse)
 async def get_article(article_id: int, db: Session = Depends(get_db)):
     """Get a specific article by ID"""
@@ -233,6 +297,7 @@ async def article_action(
 @router.post("/fetch-news")
 async def fetch_news_manually(
     language: str = Query(None, description="Language code to fetch (en, he, etc.). If not specified, fetches all languages"),
+    hours: int = Query(12, ge=1, le=168, description="How many hours back to fetch news (default: 12, max: 168)"),
     db: Session = Depends(get_db)
 ):
     """Manually trigger news fetching (for testing/admin use)"""
@@ -240,12 +305,13 @@ async def fetch_news_manually(
         # Validate language if specified
         if language and language not in news_service.get_supported_languages():
             raise HTTPException(status_code=400, detail=f"Unsupported language: {language}")
-            
-        saved_count = news_service.fetch_and_save_latest_news(db, language=language)
+        
+        saved_count = news_service.fetch_and_save_latest_news(db, language=language, hours=hours)
         return {
             "message": "News fetch completed successfully", 
             "articles_saved": saved_count,
-            "language": language or "all languages"
+            "language": language or "all languages",
+            "hours": hours
         }
     except HTTPException:
         raise
