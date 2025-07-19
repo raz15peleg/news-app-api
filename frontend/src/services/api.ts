@@ -1,148 +1,144 @@
-import axios from 'axios';
-import { NewsArticle, NewsArticleList } from '../types/news';
+// API service for communicating with the backend
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
-// Use environment variable for API URL, fallback to relative path for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
+export interface APINewsArticle {
+  id: number;
+  title: string;
+  url: string;
+  top_image: string | null;
+  images: string[] | null;
+  videos: string[] | null;
+  date: string | null;
+  short_description: string | null;
+  text: string | null;
+  publisher_href: string | null;
+  publisher_title: string | null;
+  language: string;
+  location: string;
+  created_at: string;
+  updated_at: string | null;
+  is_active: boolean;
+  views: number;
+}
 
-console.log('API Configuration:', {
-  VITE_API_URL: import.meta.env.VITE_API_URL,
-  API_BASE_URL: API_BASE_URL,
-  NODE_ENV: import.meta.env.MODE
-});
+export interface APINewsResponse {
+  articles: APINewsArticle[];
+  total: number;
+  page: number;
+  size: number;
+  has_next: boolean;
+}
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+export interface SupportedLanguage {
+  code: string;
+  name: string;
+  location: string;
+}
 
-// Request interceptor for logging
-api.interceptors.request.use(
-  (config) => {
-    console.log(`Making ${config.method?.toUpperCase()} request to:`, config.url);
-    console.log('Full request URL:', (config.baseURL || '') + (config.url || ''));
-    console.log('Request params:', config.params);
-    return config;
-  },
-  (error) => {
-    console.error('Request error:', error);
-    return Promise.reject(error);
-  }
-);
+export interface LanguagesResponse {
+  languages: SupportedLanguage[];
+}
 
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    console.error('Response error:', error);
-    
-    if (error.response) {
-      // Server responded with error status
-      const message = error.response.data?.detail || error.response.data?.message || 'Server error';
-      throw new Error(`${error.response.status}: ${message}`);
-    } else if (error.request) {
-      // Request was made but no response received
-      throw new Error('No response from server. Please check if the server is running.');
-    } else {
-      // Something else happened
-      throw new Error(error.message || 'An unexpected error occurred');
-    }
-  }
-);
+class NewsAPIService {
+  private baseURL = API_BASE_URL;
 
-export const newsApi = {
-  // Get paginated articles
-  async getArticles(skip: number = 0, limit: number = 20, randomOrder: boolean = false, language?: string): Promise<NewsArticleList> {
-    const params: any = { skip, limit, random_order: randomOrder };
-    if (language) {
-      params.language = language;
-    }
-    const response = await api.get('/articles', { params });
-    return response.data;
-  },
-
-  // Get random articles for swipe interface
-  async getRandomArticles(count: number = 100, language?: string): Promise<{ articles: NewsArticle[] }> {
-    const params: any = { count };
-    if (language) {
-      params.language = language;
-    }
-    const response = await api.get('/articles/random', { params });
-    return response.data;
-  },
-
-  // Get newest articles for swipe interface
-  async getNewestArticles(count: number = 100, language?: string): Promise<{ articles: NewsArticle[] }> {
-    const params: any = { count };
-    if (language) {
-      params.language = language;
-    }
-    const response = await api.get('/articles/newest', { params });
-    return response.data;
-  },
-
-  // Search articles by query string
-  async searchArticles(query: string, skip: number = 0, limit: number = 20, language?: string): Promise<NewsArticleList> {
-    const params: any = { query, skip, limit };
-    if (language) {
-      params.language = language;
-    }
-    const response = await api.get('/articles/search', { params });
-    return response.data;
-  },
-
-  // Get specific article by ID
-  async getArticle(id: number): Promise<NewsArticle> {
-    const response = await api.get(`/articles/${id}`);
-    return response.data;
-  },
-
-  // Record user action on article
-  async recordAction(articleId: number, action: 'view'): Promise<{ message: string }> {
-    const response = await api.post(`/articles/${articleId}/action`, {
-      action,
-      article_id: articleId
+  async getArticles(
+    language?: string,
+    skip: number = 0,
+    limit: number = 20,
+    randomOrder: boolean = false
+  ): Promise<APINewsResponse> {
+    const params = new URLSearchParams({
+      skip: skip.toString(),
+      limit: limit.toString(),
+      random_order: randomOrder.toString(),
     });
-    return response.data;
-  },
 
-  // Manually fetch news (admin function)
-  async fetchNews(language?: string): Promise<{ message: string; articles_saved: number; language: string }> {
-    const params: any = {};
     if (language) {
-      params.language = language;
+      params.append('language', language);
     }
-    const response = await api.post('/fetch-news', {}, { params });
-    return response.data;
-  },
 
-  // Get supported languages
-  async getSupportedLanguages(): Promise<{ languages: Array<{ code: string; name: string; location: string }> }> {
-    const response = await api.get('/languages');
-    return response.data;
-  },
-
-  // Get article statistics by language
-  async getArticleStats(): Promise<{ total_articles: number; by_language: Record<string, number> }> {
-    const response = await api.get('/articles/stats');
-    return response.data;
-  },
-
-  // Get scheduler status
-  async getSchedulerStatus(): Promise<any> {
-    const response = await api.get('/scheduler-status');
-    return response.data;
-  },
-
-  // Health check
-  async healthCheck(): Promise<{ status: string; message: string }> {
-    const response = await api.get('/health');
-    return response.data;
+    const response = await fetch(`${this.baseURL}/articles?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
   }
-};
 
-export default api; 
+  async getRandomArticles(language?: string, count: number = 50): Promise<{ articles: APINewsArticle[] }> {
+    const params = new URLSearchParams({
+      count: count.toString(),
+    });
+
+    if (language) {
+      params.append('language', language);
+    }
+
+    const response = await fetch(`${this.baseURL}/articles/random?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
+
+  async getNewestArticles(language?: string, count: number = 50): Promise<{ articles: APINewsArticle[] }> {
+    const params = new URLSearchParams({
+      count: count.toString(),
+    });
+
+    if (language) {
+      params.append('language', language);
+    }
+
+    const response = await fetch(`${this.baseURL}/articles/newest?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
+
+  async getSupportedLanguages(): Promise<LanguagesResponse> {
+    const response = await fetch(`${this.baseURL}/languages`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
+
+  async getArticleStats(): Promise<{ total_articles: number; by_language: Record<string, number> }> {
+    const response = await fetch(`${this.baseURL}/articles/stats`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return response.json();
+  }
+
+  async recordArticleView(articleId: number): Promise<void> {
+    const response = await fetch(`${this.baseURL}/articles/${articleId}/action`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'view',
+        article_id: articleId,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+  }
+}
+
+export const newsAPI = new NewsAPIService(); 

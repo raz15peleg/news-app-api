@@ -50,9 +50,9 @@ trap cleanup SIGINT SIGTERM
 # Stop any existing processes on the ports we need
 print_status "Cleaning up any existing processes..."
 pkill -f "uvicorn.*app.main:app" 2>/dev/null || true
-pkill -f "vite.*--port 3000" 2>/dev/null || true
+pkill -f "vite.*--port 8080" 2>/dev/null || true
 lsof -ti:8000 | xargs kill -9 2>/dev/null || true
-lsof -ti:3000 | xargs kill -9 2>/dev/null || true
+lsof -ti:8080 | xargs kill -9 2>/dev/null || true
 sleep 2
 
 # Print banner
@@ -127,14 +127,14 @@ print_success "Backend server started (PID: $BACKEND_PID)"
 # Move to frontend directory
 cd ../frontend
 
-# Load nvm and use Node.js 20
+# Load nvm and use Node.js 18
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-nvm use 20 > /dev/null 2>&1
+nvm use 18 > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-    print_error "Node.js 20 not found. Installing it now..."
-    nvm install 20
-    nvm use 20
+    print_error "Node.js 18 not found. Installing it now..."
+    nvm install 18
+    nvm use 18
 fi
 
 print_status "Using Node.js version: $(node --version)"
@@ -142,7 +142,7 @@ print_status "Using Node.js version: $(node --version)"
 # Check if node_modules exists and package.json is newer
 if [ ! -d "node_modules" ] || [ package.json -nt node_modules ]; then
     print_status "Installing/updating Node.js dependencies..."
-    pnpm install
+    npm install
     if [ $? -ne 0 ]; then
         print_error "Failed to install Node.js dependencies"
         cleanup
@@ -153,10 +153,10 @@ fi
 
 # Start frontend server
 print_status "Starting frontend development server..."
-print_status "Frontend will be available at http://localhost:3000"
+print_status "Frontend will be available at http://localhost:8080"
 
 # Start frontend in background initially to get PID, then bring to foreground
-pnpm run dev > ../frontend.log 2>&1 &
+npm run dev > ../frontend.log 2>&1 &
 FRONTEND_PID=$!
 
 # Wait a bit for frontend to start
@@ -177,7 +177,7 @@ echo ""
 echo "================================================================"
 print_success "🎉 All services are running!"
 echo "----------------------------------------------------------------"
-echo "📱 Frontend:     http://localhost:3000"
+echo "📱 Frontend:     http://localhost:8080"
 echo "🔧 Backend API:  http://localhost:8000"
 echo "📚 API Docs:     http://localhost:8000/docs"
 echo "📋 Logs:         backend.log, frontend.log"

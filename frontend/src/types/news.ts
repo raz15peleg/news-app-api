@@ -1,58 +1,70 @@
-export interface Publisher {
-  href?: string;
-  title?: string;
-}
+import { APINewsArticle } from '@/services/api';
 
+// Frontend display interface (adapted from API response)
 export interface NewsArticle {
-  id: number;
+  id: string;
   title: string;
+  excerpt: string;
+  content: string;
+  source: string;
+  author: string;
+  publishedAt: string;
+  imageUrl: string;
   url: string;
-  top_image?: string;
-  images?: string[];
-  videos?: string[];
-  date?: string;
-  short_description?: string;
-  description?: string; // Add description field that we're using
-  text?: string;
-  publisher_href?: string;
-  publisher_title?: string;
+  category: string;
   language: string;
-  location: string;
-  created_at: string;
-  updated_at?: string;
-  is_active: boolean;
+  // Original API fields for reference
+  originalId: number;
   views: number;
+  location: string;
 }
 
-export interface NewsArticleList {
-  articles: NewsArticle[];
-  total: number;
-  page: number;
-  size: number;
-  has_next: boolean;
+export interface NewsSource {
+  id: string;
+  name: string;
+  color: string;
+  logo?: string;
 }
 
-export interface UserAction {
-  action: 'view';
-  article_id: number;
-}
-
-export interface ApiResponse<T = any> {
-  data?: T;
-  message?: string;
-  error?: string;
-}
-
-export interface Language {
+export type Language = {
   code: string;
   name: string;
-  location: string;
   flag: string;
+};
+
+// Language mapping for display
+export const LANGUAGE_MAP = {
+  'en': { name: 'English', flag: '🇺🇸' },
+  'he': { name: 'Hebrew', flag: '🇮🇱' },
+} as const;
+
+// Helper function to convert API response to display format
+export function convertAPIToDisplayArticle(apiArticle: APINewsArticle): NewsArticle {
+  return {
+    id: apiArticle.id.toString(),
+    originalId: apiArticle.id,
+    title: apiArticle.title,
+    excerpt: apiArticle.short_description || apiArticle.title.substring(0, 150) + '...',
+    content: apiArticle.text || apiArticle.short_description || '',
+    source: apiArticle.publisher_title || 'Unknown Source',
+    author: apiArticle.publisher_title || 'Unknown Author',
+    publishedAt: apiArticle.date || apiArticle.created_at,
+    imageUrl: apiArticle.top_image || '/placeholder.svg',
+    url: apiArticle.url,
+    category: 'News', // API doesn't provide category, so defaulting to 'News'
+    language: LANGUAGE_MAP[apiArticle.language as keyof typeof LANGUAGE_MAP]?.name || apiArticle.language,
+    views: apiArticle.views,
+    location: apiArticle.location,
+  };
 }
 
-export interface LanguageStats {
-  total_articles: number;
-  by_language: Record<string, number>;
+// Helper function to get language code from language name
+export function getLanguageCode(languageName: string): string {
+  const entry = Object.entries(LANGUAGE_MAP).find(([_, value]) => value.name === languageName);
+  return entry ? entry[0] : 'en'; // Default to English
 }
 
-export type SwipeDirection = 'left' | 'right' | 'up' | 'down'; 
+// Helper function to get language name from language code
+export function getLanguageName(languageCode: string): string {
+  return LANGUAGE_MAP[languageCode as keyof typeof LANGUAGE_MAP]?.name || languageCode;
+}

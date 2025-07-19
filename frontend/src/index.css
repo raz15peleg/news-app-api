@@ -2,488 +2,120 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Enhanced typography system based on newspaper research */
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
 @layer base {
-  /* Improved font stacks based on newspaper research */
   :root {
-    /* English/Latin typography - inspired by NYT and Guardian */
-    --font-serif-display: 'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L', P052, serif;
-    --font-serif-body: Georgia, 'Times New Roman', Times, serif;
-    --font-sans-display: 'SF Pro Display', 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --font-sans-body: 'SF Pro Text', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --background: 210 20% 98%;
+    --foreground: 215 25% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 25% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 25% 12%;
+
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 215 25% 12%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 13% 45%;
+
+    --accent: 210 20% 96%;
+    --accent-foreground: 215 25% 12%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 20% 92%;
+    --input: 210 20% 92%;
+    --ring: 210 100% 50%;
+
+    /* News-specific colors */
+    --news-cnn: 0 75% 45%;
+    --news-bbc: 0 0% 13%;
+    --news-header: 215 25% 8%;
+    --news-card-hover: 0 0% 100%;
+    --news-shadow: 210 20% 85%;
     
-    /* Hebrew typography - improved with better fonts */
-    --font-hebrew-display: 'Noto Sans Hebrew', 'Arial Hebrew', 'David', Tahoma, sans-serif;
-    --font-hebrew-body: 'Noto Serif Hebrew', 'Times New Roman', serif;
+    /* Gradients */
+    --gradient-header: linear-gradient(135deg, hsl(var(--news-header)), hsl(215 25% 15%));
+    --gradient-card: linear-gradient(180deg, hsl(var(--card)), hsl(210 20% 99%));
     
-    /* Typography scale inspired by BBC and Guardian */
-    --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
-    --text-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
-    --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
-    --text-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
-    --text-xl: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem);
-    --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 1.875rem);
-    --text-3xl: clamp(1.875rem, 1.6rem + 1.375vw, 2.25rem);
-    --text-4xl: clamp(2.25rem, 1.9rem + 1.75vw, 3rem);
-    
-    /* Color system inspired by NYT's approach */
-    --color-text-primary: #1a1a1a;
-    --color-text-secondary: #4a4a4a;
-    --color-text-muted: #6b7280;
-    --color-text-light: #9ca3af;
-    
-    /* Dark mode colors */
-    --color-dark-text-primary: #f9fafb;
-    --color-dark-text-secondary: #e5e7eb;
-    --color-dark-text-muted: #9ca3af;
-    --color-dark-text-light: #6b7280;
-    
-    /* Line heights optimized for readability */
-    --leading-tight: 1.25;
-    --leading-snug: 1.375;
-    --leading-normal: 1.5;
-    --leading-relaxed: 1.625;
-    --leading-loose: 1.75;
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --shadow-card: 0 2px 8px hsl(var(--news-shadow) / 0.15);
+    --shadow-card-hover: 0 8px 25px hsl(var(--news-shadow) / 0.25);
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+
+    --sidebar-foreground: 240 5.3% 26.1%;
+
+    --sidebar-primary: 240 5.9% 10%;
+
+    --sidebar-primary-foreground: 0 0% 98%;
+
+    --sidebar-accent: 240 4.8% 95.9%;
+
+    --sidebar-accent-foreground: 240 5.9% 10%;
+
+    --sidebar-border: 220 13% 91%;
+
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 
-  /* Base font families */
-  html {
-    font-family: var(--font-sans-body);
-  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-  /* Responsive typography utilities */
-  .text-responsive-xs { font-size: var(--text-xs); }
-  .text-responsive-sm { font-size: var(--text-sm); }
-  .text-responsive-base { font-size: var(--text-base); }
-  .text-responsive-lg { font-size: var(--text-lg); }
-  .text-responsive-xl { font-size: var(--text-xl); }
-  .text-responsive-2xl { font-size: var(--text-2xl); }
-  .text-responsive-3xl { font-size: var(--text-3xl); }
-  .text-responsive-4xl { font-size: var(--text-4xl); }
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
 
-  /* Enhanced font utilities */
-  .font-display { 
-    font-family: var(--font-serif-display); 
-    font-weight: 600;
-    letter-spacing: -0.025em;
-  }
-  
-  .font-body { 
-    font-family: var(--font-serif-body); 
-    font-weight: 400;
-  }
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
 
-  /* Hebrew-specific typography */
-  [dir="rtl"] .font-display,
-  .font-hebrew-display {
-    font-family: var(--font-hebrew-display);
-    font-weight: 600;
-  }
-  
-  [dir="rtl"] .font-body,
-  .font-hebrew-body {
-    font-family: var(--font-hebrew-body);
-    font-weight: 400;
-    line-height: var(--leading-loose); /* Hebrew needs more line height */
-  }
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
-  /* News-specific typography classes */
-  .article-headline {
-    font-family: var(--font-serif-display);
-    font-weight: 700;
-    line-height: var(--leading-tight);
-    letter-spacing: -0.025em;
-    color: var(--color-text-primary);
-    text-wrap: balance;
-  }
-  
-  .article-body {
-    font-family: var(--font-serif-body);
-    font-weight: 400;
-    line-height: var(--leading-relaxed);
-    color: var(--color-text-secondary);
-    text-wrap: pretty;
-  }
-  
-  .article-meta {
-    font-family: var(--font-sans-body);
-    font-weight: 500;
-    font-size: var(--text-sm);
-    color: var(--color-text-muted);
-  }
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-  /* Dark mode support for typography */
-  .dark .article-headline {
-    color: var(--color-dark-text-primary);
-  }
-  
-  .dark .article-body {
-    color: var(--color-dark-text-secondary);
-  }
-  
-  .dark .article-meta {
-    color: var(--color-dark-text-muted);
-  }
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-  /* Readability utilities */
-  .prose-readable {
-    max-width: 65ch; /* Optimal reading width */
-    margin-left: auto;
-    margin-right: auto;
-  }
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-  /* High contrast text utility */
-  .text-high-contrast {
-    color: var(--color-text-primary);
-    font-weight: 600;
-  }
-  
-  .dark .text-high-contrast {
-    color: var(--color-dark-text-primary);
-  }
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-  /* Enhanced focus styles for accessibility */
-  .focus-enhanced:focus {
-    outline: 2px solid #3b82f6;
-    outline-offset: 2px;
-    border-radius: 0.375rem;
-  }
-
-  /* Better image loading and hover effects */
-  .image-hover {
-    transition: transform 0.3s ease, filter 0.3s ease;
-  }
-  
-  .image-hover:hover {
-    transform: scale(1.02);
-    filter: brightness(1.05);
-  }
-
-  /* Mobile-specific optimizations */
-  @media (max-width: 640px) {
-    .article-headline {
-      font-size: var(--text-lg);
-      line-height: var(--leading-snug);
-    }
-    
-    .article-body {
-      font-size: var(--text-base);
-    }
-  }
-
-  /* Floating timestamp bar styles */
-  .floating-timestamp {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    background: rgba(0, 0, 0, 0.8);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .floating-timestamp-light {
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    background: rgba(255, 255, 255, 0.9);
-    border-top: 1px solid rgba(0, 0, 0, 0.1);
-    color: #374151;
-  }
-
-  /* Enhanced card hover effects */
-  .card-hover-effect {
-    transition: all 0.3s ease;
-  }
-  
-  .card-hover-effect:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-
-  /* Line clamp utilities for better text truncation */
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-4 {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* Better text wrapping */
-  .text-balance {
-    text-wrap: balance;
-  }
-  
-  .text-pretty {
-    text-wrap: pretty;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
   }
 }
 
-/* Custom utility classes */
-@layer utilities {
-  .line-clamp-3 {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-4 {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .line-clamp-6 {
-    display: -webkit-box;
-    -webkit-line-clamp: 6;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-  
-  .aspect-video {
-    aspect-ratio: 16 / 9;
+@layer base {
+  * {
+    @apply border-border;
   }
 
-  /* RTL utilities */
-  .rtl {
-    direction: rtl;
-  }
-  
-  .ltr {
-    direction: ltr;
-  }
-
-  /* Enhanced typography utilities */
-  .text-balance {
-    text-wrap: balance;
-  }
-
-  .text-pretty {
-    text-wrap: pretty;
-  }
-
-  /* Responsive typography utilities */
-  .text-responsive-xs { font-size: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem); }
-  .text-responsive-sm { font-size: clamp(0.875rem, 0.8rem + 0.375vw, 1rem); }
-  .text-responsive-base { font-size: clamp(1rem, 0.9rem + 0.5vw, 1.125rem); }
-  .text-responsive-lg { font-size: clamp(1.125rem, 1rem + 0.625vw, 1.25rem); }
-  .text-responsive-xl { font-size: clamp(1.25rem, 1.1rem + 0.75vw, 1.5rem); }
-  .text-responsive-2xl { font-size: clamp(1.5rem, 1.3rem + 1vw, 2rem); }
-  .text-responsive-3xl { font-size: clamp(1.875rem, 1.6rem + 1.375vw, 2.5rem); }
-  .text-responsive-4xl { font-size: clamp(2.25rem, 1.9rem + 1.75vw, 3rem); }
-
-  /* Improved readability utilities */
-  .prose-readable {
-    max-width: 65ch;
-    line-height: var(--leading-relaxed);
-  }
-
-  [dir="rtl"] .prose-readable {
-    line-height: 1.75;
-  }
-
-  /* Enhanced contrast utilities for better accessibility */
-  .text-high-contrast {
-    color: var(--text-primary);
-    font-weight: 500;
-  }
-
-  .text-medium-contrast {
-    color: var(--text-secondary);
-  }
-
-  .text-low-contrast {
-    color: var(--text-muted);
-  }
-
-  /* Emoji display utilities */
-  .emoji {
-    font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'Twemoji Mozilla', 'Android Emoji', sans-serif;
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-    display: inline-block;
-    vertical-align: middle;
+  body {
+    @apply bg-background text-foreground;
   }
 }
-
-/* RTL layout adjustments */
-[dir="rtl"] {
-  text-align: right;
-}
-
-/* Text alignment overrides */
-[dir="rtl"] .text-left {
-  text-align: right !important;
-}
-
-[dir="rtl"] .text-right {
-  text-align: right !important;
-}
-
-[dir="ltr"] .text-left {
-  text-align: left !important;
-}
-
-[dir="ltr"] .text-right {
-  text-align: left !important;
-}
-
-/* Flex layout adjustments for RTL */
-[dir="rtl"] .justify-end {
-  justify-content: flex-end !important;
-}
-
-[dir="rtl"] .justify-start {
-  justify-content: flex-start !important;
-}
-
-/* Button alignment for RTL */
-[dir="rtl"] .mt-4 {
-  text-align: right;
-}
-
-[dir="ltr"] .mt-4 {
-  text-align: left;
-}
-
-/* RTL button spacing */
-[dir="rtl"] button .mr-2 {
-  margin-right: 0;
-  margin-left: 0.5rem;
-}
-
-/* RTL space adjustments */
-[dir="rtl"] .space-x-4 > :not([hidden]) ~ :not([hidden]) {
-  --tw-space-x-reverse: 1;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a1;
-}
-
-/* Image loading improvements */
-img {
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
-}
-
-img[loading="lazy"] {
-  transition: opacity 0.3s ease-in-out;
-}
-
-/* Card animations */
-.card-enter {
-  transform: scale(0.8) translateY(50px);
-  opacity: 0;
-}
-
-.card-enter-active {
-  transform: scale(1) translateY(0px);
-  opacity: 1;
-  transition: all 300ms ease-out;
-}
-
-.card-exit {
-  transform: scale(1) translateY(0px);
-  opacity: 1;
-}
-
-.card-exit-active {
-  transform: scale(0.8) translateY(-50px);
-  opacity: 0;
-  transition: all 300ms ease-in;
-}
-
-/* Swipe feedback animations */
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.shake {
-  animation: shake 0.5s ease-in-out;
-}
-
-/* Loading animation */
-.loading-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: .5;
-  }
-}
-
-/* Focus styles for accessibility */
-button:focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Mobile-specific improvements */
-@media (max-width: 640px) {
-  .swipe-card {
-    touch-action: pan-y;
-  }
-}
-
-/* High-quality image container */
-.image-container {
-  position: relative;
-  overflow: hidden;
-  background-color: #f3f4f6;
-}
-
-.image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.image-container:hover img {
-  transform: scale(1.02);
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text-primary: #f9fafb;
-    --text-secondary: #d1d5db;
-    --text-muted: #9ca3af;
-  }
-} 
